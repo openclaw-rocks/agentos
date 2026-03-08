@@ -1,0 +1,18 @@
+services:
+  synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: openclaw-synapse
+    restart: unless-stopped
+    volumes:
+      - ./dev/synapse:/data
+    ports:
+      - "8008:8008"
+    environment:
+      - SYNAPSE_SERVER_NAME=localhost
+      - SYNAPSE_REPORT_STATS=no
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fSs http://localhost:8008/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s

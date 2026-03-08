@@ -1,4 +1,6 @@
 # Matrix Application Service registration for OpenClaw Agent Service
+# This is a TEMPLATE. The real registration with generated tokens lives at:
+#   dev/synapse/appservice-openclaw.yaml  (created by dev/setup.sh)
 # Place this file where your homeserver can access it and reference it
 # in your homeserver configuration.
 
