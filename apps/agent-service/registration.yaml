@@ -1,0 +1,16 @@
+# Matrix Application Service registration for OpenClaw Agent Service
+# Place this file where your homeserver can access it and reference it
+# in your homeserver configuration.
+
+id: openclaw-agent-service
+url: "http://localhost:9000"
+as_token: "CHANGE_ME_as_token"
+hs_token: "CHANGE_ME_hs_token"
+sender_localpart: "openclaw-service"
+namespaces:
+  users:
+    - exclusive: true
+      regex: "@agent-.*"
+  rooms: []
+  aliases: []
+rate_limited: false
