@@ -6,6 +6,7 @@ import { EventTypes } from "@openclaw/matrix-events";
 
 interface ChatViewProps {
   roomId: string;
+  onOpenThread: (eventId: string) => void;
   onToggleAgentPanel: () => void;
 }
 
@@ -17,9 +18,11 @@ interface TimelineMessage {
   content: Record<string, unknown>;
   timestamp: number;
   isAgent: boolean;
+  threadRootId?: string;
+  replyCount: number;
 }
 
-export function ChatView({ roomId, onToggleAgentPanel }: ChatViewProps) {
+export function ChatView({ roomId, onOpenThread, onToggleAgentPanel }: ChatViewProps) {
   const { client } = useMatrix();
   const [messages, setMessages] = useState<TimelineMessage[]>([]);
   const [input, setInput] = useState("");
@@ -29,14 +32,35 @@ export function ChatView({ roomId, onToggleAgentPanel }: ChatViewProps) {
   const loadMessages = useCallback(() => {
     if (!room) return;
     const timeline = room.getLiveTimeline().getEvents();
+
+    // Count replies per thread root
+    const threadReplyCounts = new Map<string, number>();
+    const threadChildIds = new Set<string>();
+
+    for (const e of timeline) {
+      const relation = e.getContent()?.["m.relates_to"];
+      if (relation?.rel_type === "m.thread" && relation.event_id) {
+        const rootId = relation.event_id as string;
+        threadReplyCounts.set(rootId, (threadReplyCounts.get(rootId) ?? 0) + 1);
+        threadChildIds.add(e.getId()!);
+      }
+    }
+
     const msgs: TimelineMessage[] = timeline
-      .filter(
-        (e) =>
-          e.getType() === "m.room.message" ||
-          e.getType() === EventTypes.UI ||
-          e.getType() === EventTypes.Task ||
-          e.getType() === EventTypes.Status,
-      )
+      .filter((e) => {
+        const type = e.getType();
+        const isRelevant =
+          type === "m.room.message" ||
+          type === EventTypes.UI ||
+          type === EventTypes.Task ||
+          type === EventTypes.Status;
+        if (!isRelevant) return false;
+
+        // Hide thread replies from main timeline
+        if (threadChildIds.has(e.getId()!)) return false;
+
+        return true;
+      })
       .map((e) => ({
         id: e.getId()!,
         sender: e.getSender()!,
@@ -45,6 +69,7 @@ export function ChatView({ roomId, onToggleAgentPanel }: ChatViewProps) {
         content: e.getContent(),
         timestamp: e.getTs(),
         isAgent: e.getSender()?.includes("agent-") ?? false,
+        replyCount: threadReplyCounts.get(e.getId()!) ?? 0,
       }));
     setMessages(msgs);
   }, [room]);
@@ -85,7 +110,7 @@ export function ChatView({ roomId, onToggleAgentPanel }: ChatViewProps) {
       {/* Header */}
       <div className="h-14 flex items-center justify-between px-4 border-b border-border flex-shrink-0">
         <div>
-          <h2 className="text-sm font-semibold text-white">{roomName}</h2>
+          <h2 className="text-sm font-semibold text-white"># {roomName}</h2>
           <p className="text-xs text-gray-500">
             {room?.getJoinedMemberCount() ?? 0} members
           </p>
@@ -99,9 +124,9 @@ export function ChatView({ roomId, onToggleAgentPanel }: ChatViewProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
         {messages.map((msg) => (
-          <div key={msg.id} className="group">
+          <div key={msg.id} className="group hover:bg-surface-1/50 -mx-2 px-2 py-1.5 rounded-lg transition-colors">
             <div className="flex items-start gap-3">
               {/* Avatar */}
               <div
@@ -159,6 +184,32 @@ export function ChatView({ roomId, onToggleAgentPanel }: ChatViewProps) {
                     }}
                   />
                 )}
+
+                {/* Thread indicator */}
+                {msg.replyCount > 0 && (
+                  <button
+                    onClick={() => onOpenThread(msg.id)}
+                    className="mt-1.5 flex items-center gap-1.5 text-accent hover:text-accent-hover text-xs transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <span>{msg.replyCount} {msg.replyCount === 1 ? "reply" : "replies"}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Hover actions */}
+              <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity flex-shrink-0">
+                <button
+                  onClick={() => onOpenThread(msg.id)}
+                  className="p-1 text-gray-500 hover:text-gray-300 hover:bg-surface-3 rounded transition-colors"
+                  title="Reply in thread"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -173,7 +224,7 @@ export function ChatView({ roomId, onToggleAgentPanel }: ChatViewProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Message..."
+            placeholder={`Message #${roomName}...`}
             rows={1}
             className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none focus:outline-none"
           />
