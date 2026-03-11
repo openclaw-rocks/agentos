@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-shell
+  labels:
+    app.kubernetes.io/name: openclaw-shell
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: shell
+spec:
+  replicas: {{ .Values.shell.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: openclaw-shell
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: openclaw-shell
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: shell
+    spec:
+      containers:
+        - name: shell
+          image: "{{ .Values.shell.image.repository }}:{{ .Values.shell.image.tag }}"
+          imagePullPolicy: {{ .Values.shell.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.shell.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.shell.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10

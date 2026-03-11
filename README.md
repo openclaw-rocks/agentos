@@ -1,6 +1,6 @@
-# OpenClaw Workspace
+# AgentOS
 
-An agent-first workspace built on the [Matrix](https://matrix.org) protocol. Agents are not bolted on as an afterthought. They are first-class participants: they join channels, render rich interactive UI, communicate with each other, and get auto-deployed based on room context.
+An agent-first operating system built on the [Matrix](https://matrix.org) protocol. Agents are not bolted on as an afterthought. They are first-class participants: they join channels, render rich interactive UI, communicate with each other, and get auto-deployed based on room context.
 
 Think Slack, but where AI agents are as natural as human teammates.
 
@@ -58,23 +58,23 @@ Slack and Teams were designed for humans. Bots were an afterthought, limited to 
 ```
 openclaw-workspace/
   apps/
-    web/                  React web client
-    agent-service/        Matrix Application Service for agent orchestration
+    shell/                React web client (AgentOS shell)
+    runtime/              Matrix Application Service for agent orchestration
   packages/
-    matrix-events/        Custom Matrix event type definitions
+    protocol/             Custom Matrix event type definitions
     agent-sdk/            SDK for building workspace agents
-    ui-components/        A2UI component registry and validation
+    a2ui/                 A2UI component registry and validation
   agents/
     echo/                 Example agent demonstrating all A2UI components
 ```
 
 | Package | What it does |
 |---------|-------------|
-| `@openclaw/matrix-events` | TypeScript types for all custom Matrix events: A2UI components, agent status, tasks, tool calls |
+| `@openclaw/protocol` | TypeScript types for all custom Matrix events: A2UI components, agent status, tasks, tool calls |
 | `@openclaw/agent-sdk` | `BaseAgent` (connection + routing), `UIBuilder` (fluent A2UI builder), `AgentContext` (room-scoped messaging) |
-| `@openclaw/ui-components` | Component registry, tree validation, serialization for A2UI |
-| `@openclaw/agent-service` | Watches room events, auto-deploys agents based on name patterns, manages agent lifecycle |
-| `@openclaw/web` | Login, room list, chat timeline, full A2UI renderer (14 component types), agent panel |
+| `@openclaw/a2ui` | Component registry, tree validation, serialization for A2UI |
+| `@openclaw/runtime` | Watches room events, auto-deploys agents based on name patterns, manages agent lifecycle |
+| `@openclaw/shell` | Login, room list, chat timeline, full A2UI renderer (14 component types), agent panel |
 | `@openclaw/agent-echo` | Demo agent with `!help`, `!echo`, and 6 demo commands showcasing every A2UI component |
 
 ## A2UI: Agent-to-UI Components
@@ -279,7 +279,7 @@ pnpm typecheck    # Type check all packages
 Individual packages:
 
 ```bash
-pnpm --filter @openclaw/web dev           # Just the web client
+pnpm --filter @openclaw/shell dev          # Just the web client
 pnpm --filter @openclaw/agent-echo dev    # Just the echo agent
 ```
 

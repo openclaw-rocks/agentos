@@ -1,5 +1,5 @@
+import type { AgentAction, AgentInfo } from "@openclaw/protocol";
 import type { MatrixEvent } from "matrix-js-sdk";
-import type { AgentAction, AgentInfo } from "@openclaw/matrix-events";
 
 export interface AgentConfig {
   /** Matrix homeserver URL */
@@ -15,16 +15,19 @@ export interface AgentConfig {
 export interface ToolDefinition {
   name: string;
   description: string;
-  parameters: Record<string, {
-    type: string;
-    description: string;
-    required?: boolean;
-  }>;
+  parameters: Record<
+    string,
+    {
+      type: string;
+      description: string;
+      required?: boolean;
+    }
+  >;
 }
 
 export type ToolHandler = (
   args: Record<string, unknown>,
-  context: { roomId: string; senderId: string }
+  context: { roomId: string; senderId: string },
 ) => Promise<unknown>;
 
 export interface AgentHandler {
@@ -38,7 +41,12 @@ export interface AgentHandler {
   onInvite?(roomId: string, inviter: string): Promise<void>;
 
   /** Called when a task is assigned to this agent */
-  onTask?(roomId: string, taskId: string, title: string, metadata: Record<string, unknown>): Promise<void>;
+  onTask?(
+    roomId: string,
+    taskId: string,
+    title: string,
+    metadata: Record<string, unknown>,
+  ): Promise<void>;
 
   /** Called when the agent starts up */
   onStart?(): Promise<void>;

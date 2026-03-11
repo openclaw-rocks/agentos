@@ -1,15 +1,15 @@
-import * as sdk from "matrix-js-sdk";
 import {
   EventTypes,
   AgentStatusValues,
   type AgentAction,
   type AgentStatusEventContent,
-} from "@openclaw/matrix-events";
+} from "@openclaw/protocol";
+import * as sdk from "matrix-js-sdk";
 import { AgentContext } from "./context.js";
 import type { AgentConfig, AgentHandler, ToolDefinition, ToolHandler } from "./types.js";
 
 /**
- * Base class for OpenClaw workspace agents.
+ * Base class for AgentOS agents.
  * Handles Matrix connection, event routing, and lifecycle management.
  *
  * Usage:
@@ -119,16 +119,21 @@ export class BaseAgent {
       if (eventType === "m.room.message" && this.handler.onMessage) {
         const msgContent = event.getContent();
         if (msgContent.msgtype === "m.text") {
-          this.handler.onMessage(roomId, sender, msgContent.body, event).catch((err) =>
-            console.error(`[${this.config.info.displayName}] Error handling message:`, err),
-          );
+          this.handler
+            .onMessage(roomId, sender, msgContent.body, event)
+            .catch((err) =>
+              console.error(`[${this.config.info.displayName}] Error handling message:`, err),
+            );
         }
       }
 
-      // Route UI actions
-      if (eventType === EventTypes.UI && this.handler.onAction) {
+      // Route UI actions (from dedicated action events or legacy UI events with action field)
+      if (
+        (eventType === EventTypes.Action || eventType === EventTypes.UI) &&
+        this.handler.onAction
+      ) {
         const content = event.getContent();
-        if (content.action) {
+        if (content.action && content.agent_id === this.config.info.id) {
           const action: AgentAction = {
             action: content.action,
             agent_id: this.config.info.id,
@@ -136,9 +141,11 @@ export class BaseAgent {
             event_id: event.getId()!,
             data: content.data,
           };
-          this.handler.onAction(action).catch((err) =>
-            console.error(`[${this.config.info.displayName}] Error handling action:`, err),
-          );
+          this.handler
+            .onAction(action)
+            .catch((err) =>
+              console.error(`[${this.config.info.displayName}] Error handling action:`, err),
+            );
         }
       }
 
@@ -146,45 +153,57 @@ export class BaseAgent {
       if (eventType === EventTypes.Task && this.handler.onTask) {
         const content = event.getContent();
         if (content.assigned_to === this.config.info.id && content.status === "pending") {
-          this.handler.onTask(roomId, content.task_id, content.title, content.metadata ?? {}).catch((err) =>
-            console.error(`[${this.config.info.displayName}] Error handling task:`, err),
-          );
+          this.handler
+            .onTask(roomId, content.task_id, content.title, content.metadata ?? {})
+            .catch((err) =>
+              console.error(`[${this.config.info.displayName}] Error handling task:`, err),
+            );
         }
       }
     });
 
     // Handle invites — auto-accept
-    this.client.on(sdk.RoomMemberEvent.Membership, (_event: sdk.MatrixEvent, member: sdk.RoomMember) => {
-      if (member.userId !== this.config.userId) return;
-      if (member.membership !== "invite") return;
+    this.client.on(
+      sdk.RoomMemberEvent.Membership,
+      (_event: sdk.MatrixEvent, member: sdk.RoomMember) => {
+        if (member.userId !== this.config.userId) return;
+        if (member.membership !== "invite") return;
 
-      const roomId = member.roomId;
+        const roomId = member.roomId;
 
-      this.client.joinRoom(roomId).then(() => {
-        console.log(`[${this.config.info.displayName}] Joined room ${roomId}`);
+        this.client
+          .joinRoom(roomId)
+          .then(() => {
+            console.log(`[${this.config.info.displayName}] Joined room ${roomId}`);
 
-        if (this.handler.onInvite) {
-          this.handler.onInvite(roomId, _event.getSender()!).catch((err) =>
-            console.error(`[${this.config.info.displayName}] Error handling invite:`, err),
+            if (this.handler.onInvite) {
+              this.handler
+                .onInvite(roomId, _event.getSender()!)
+                .catch((err) =>
+                  console.error(`[${this.config.info.displayName}] Error handling invite:`, err),
+                );
+            }
+
+            // Announce agent presence in room
+            const ctx = this.context(roomId);
+            const status: AgentStatusEventContent = {
+              agent_id: this.config.info.id,
+              display_name: this.config.info.displayName,
+              avatar_url: this.config.info.avatarUrl,
+              status: AgentStatusValues.Online,
+              capabilities: this.config.info.capabilities,
+              description: this.config.info.description,
+            };
+            ctx
+              .setStatus(status)
+              .catch((err) =>
+                console.error(`[${this.config.info.displayName}] Error setting status:`, err),
+              );
+          })
+          .catch((err) =>
+            console.error(`[${this.config.info.displayName}] Error joining room:`, err),
           );
-        }
-
-        // Announce agent presence in room
-        const ctx = this.context(roomId);
-        const status: AgentStatusEventContent = {
-          agent_id: this.config.info.id,
-          display_name: this.config.info.displayName,
-          avatar_url: this.config.info.avatarUrl,
-          status: AgentStatusValues.Online,
-          capabilities: this.config.info.capabilities,
-          description: this.config.info.description,
-        };
-        ctx.setStatus(status).catch((err) =>
-          console.error(`[${this.config.info.displayName}] Error setting status:`, err),
-        );
-      }).catch((err) =>
-        console.error(`[${this.config.info.displayName}] Error joining room:`, err),
-      );
-    });
+      },
+    );
   }
 }

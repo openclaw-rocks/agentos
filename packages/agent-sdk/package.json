@@ -13,11 +13,14 @@
   },
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
   },
   "dependencies": {
-    "@openclaw/matrix-events": "workspace:*",
+    "@openclaw/protocol": "workspace:*",
     "matrix-js-sdk": "^36.0.0"
   },
   "devDependencies": {

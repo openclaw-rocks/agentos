@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Surface */
+    --color-surface-0: 10 10 15;
+    --color-surface-1: 18 18 26;
+    --color-surface-2: 26 26 36;
+    --color-surface-3: 34 34 46;
+    --color-surface-4: 42 42 56;
+
+    /* Accent */
+    --color-accent: 99 102 241;
+    --color-accent-hover: 129 140 248;
+    --color-accent-muted: 79 70 229;
+
+    /* Status */
+    --color-status-success: 34 197 94;
+    --color-status-warning: 234 179 8;
+    --color-status-error: 239 68 68;
+    --color-status-info: 59 130 246;
+    --color-status-pending: 168 85 247;
+
+    /* Border */
+    --color-border: 42 42 56;
+    --color-border-focus: 99 102 241;
+
+    /* Text */
+    --color-text-primary: 255 255 255;
+    --color-text-secondary: 209 213 219;
+    --color-text-muted: 107 114 128;
+
+    color-scheme: dark;
+  }
+
+  .theme-light {
+    --color-surface-0: 255 255 255;
+    --color-surface-1: 249 250 251;
+    --color-surface-2: 243 244 246;
+    --color-surface-3: 229 231 235;
+    --color-surface-4: 209 213 219;
+
+    --color-accent: 79 70 229;
+    --color-accent-hover: 67 56 202;
+    --color-accent-muted: 99 102 241;
+
+    --color-status-success: 22 163 74;
+    --color-status-warning: 202 138 4;
+    --color-status-error: 220 38 38;
+    --color-status-info: 37 99 235;
+    --color-status-pending: 147 51 234;
+
+    --color-border: 229 231 235;
+    --color-border-focus: 79 70 229;
+
+    --color-text-primary: 17 24 39;
+    --color-text-secondary: 55 65 81;
+    --color-text-muted: 156 163 175;
+
+    color-scheme: light;
+  }
+
+  /* Light mode auto-detection disabled — app text colors aren't fully themed yet.
+     Light mode is available via .theme-light class on <html> for future use. */
+
+  * {
+    @apply border-border;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-4 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+  }
+}

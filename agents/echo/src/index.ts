@@ -31,21 +31,19 @@ const agent = new BaseAgent(
       if (command === "!help" || command === "!echo help") {
         const ui = new UIBuilder()
           .card("Echo Agent — Commands", (card) =>
-            card
-              .text("Available commands:")
-              .table(
-                [
-                  ["!echo <text>", "Echo back a message"],
-                  ["!demo card", "Show a demo approval card"],
-                  ["!demo progress", "Show a demo progress indicator"],
-                  ["!demo form", "Show a demo form"],
-                  ["!demo diff", "Show a demo code diff"],
-                  ["!demo log", "Show a demo log output"],
-                  ["!demo status", "Show status indicators"],
-                  ["!help", "Show this help message"],
-                ],
-                ["Command", "Description"],
-              ),
+            card.text("Available commands:").table(
+              [
+                ["!echo <text>", "Echo back a message"],
+                ["!demo card", "Show a demo approval card"],
+                ["!demo progress", "Show a demo progress indicator"],
+                ["!demo form", "Show a demo form"],
+                ["!demo diff", "Show a demo code diff"],
+                ["!demo log", "Show a demo log output"],
+                ["!demo status", "Show status indicators"],
+                ["!help", "Show this help message"],
+              ],
+              ["Command", "Description"],
+            ),
           )
           .build();
 
@@ -116,24 +114,26 @@ const agent = new BaseAgent(
             card
               .text("Configure and deploy a new agent to this workspace.")
               .divider()
-              .form("create_agent", (form) =>
-                form
-                  .input("name", "Agent Name", { placeholder: "my-agent", required: true })
-                  .input("description", "Description", {
-                    inputType: "textarea",
-                    placeholder: "What does this agent do?",
-                  })
-                  .input("model", "LLM Model", {
-                    inputType: "select",
-                    options: [
-                      { label: "Claude Opus 4.6", value: "claude-opus-4-6" },
-                      { label: "Claude Sonnet 4.6", value: "claude-sonnet-4-6" },
-                      { label: "Claude Haiku 4.5", value: "claude-haiku-4-5" },
-                    ],
-                  })
-                  .input("auto_join", "Auto-join Pattern", {
-                    placeholder: "incident-*",
-                  }),
+              .form(
+                "create_agent",
+                (form) =>
+                  form
+                    .input("name", "Agent Name", { placeholder: "my-agent", required: true })
+                    .input("description", "Description", {
+                      inputType: "textarea",
+                      placeholder: "What does this agent do?",
+                    })
+                    .input("model", "LLM Model", {
+                      inputType: "select",
+                      options: [
+                        { label: "Claude Opus 4.6", value: "claude-opus-4-6" },
+                        { label: "Claude Sonnet 4.6", value: "claude-sonnet-4-6" },
+                        { label: "Claude Haiku 4.5", value: "claude-haiku-4-5" },
+                      ],
+                    })
+                    .input("auto_join", "Auto-join Pattern", {
+                      placeholder: "incident-*",
+                    }),
                 "Deploy Agent",
               ),
           )
@@ -188,12 +188,36 @@ const agent = new BaseAgent(
               [
                 { timestamp: "12:00:01", level: "info", message: "Agent started" },
                 { timestamp: "12:00:01", level: "info", message: "Connected to Matrix homeserver" },
-                { timestamp: "12:00:02", level: "info", message: "Joined room #incident-db-outage" },
-                { timestamp: "12:00:02", level: "info", message: "Loading context from room state..." },
-                { timestamp: "12:00:03", level: "info", message: "Fetching Prometheus metrics for db-primary" },
-                { timestamp: "12:00:05", level: "warn", message: "Connection pool saturation at 94%" },
-                { timestamp: "12:00:06", level: "error", message: "Replica lag exceeds 30s threshold" },
-                { timestamp: "12:00:06", level: "info", message: "Triggering runbook: db-connection-pool-recovery" },
+                {
+                  timestamp: "12:00:02",
+                  level: "info",
+                  message: "Joined room #incident-db-outage",
+                },
+                {
+                  timestamp: "12:00:02",
+                  level: "info",
+                  message: "Loading context from room state...",
+                },
+                {
+                  timestamp: "12:00:03",
+                  level: "info",
+                  message: "Fetching Prometheus metrics for db-primary",
+                },
+                {
+                  timestamp: "12:00:05",
+                  level: "warn",
+                  message: "Connection pool saturation at 94%",
+                },
+                {
+                  timestamp: "12:00:06",
+                  level: "error",
+                  message: "Replica lag exceeds 30s threshold",
+                },
+                {
+                  timestamp: "12:00:06",
+                  level: "info",
+                  message: "Triggering runbook: db-connection-pool-recovery",
+                },
               ],
               300,
             ),
@@ -225,7 +249,9 @@ const agent = new BaseAgent(
 
     async onAction(action) {
       const ctx = agent.context(action.room_id);
-      await ctx.sendNotice(`Action received: ${action.action} (data: ${JSON.stringify(action.data ?? {})})`);
+      await ctx.sendNotice(
+        `Action received: ${action.action} (data: ${JSON.stringify(action.data ?? {})})`,
+      );
     },
 
     async onInvite(roomId, inviter) {
@@ -234,7 +260,9 @@ const agent = new BaseAgent(
         .card("Echo Agent Online", (card) =>
           card
             .text(`Thanks for inviting me, ${inviter}!`)
-            .text("I'm a demo agent that showcases A2UI components. Type **!help** to see what I can do."),
+            .text(
+              "I'm a demo agent that showcases A2UI components. Type **!help** to see what I can do.",
+            ),
         )
         .build();
 

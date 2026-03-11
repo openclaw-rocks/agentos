@@ -69,6 +69,21 @@ app_service_config_files:
 
 # Allow agents to use larger messages
 max_event_bytes: 1048576
+
+# Disable rate limiting for local dev
+rc_login:
+  address:
+    per_second: 100
+    burst_count: 100
+  account:
+    per_second: 100
+    burst_count: 100
+rc_message:
+  per_second: 100
+  burst_count: 100
+rc_registration:
+  per_second: 100
+  burst_count: 100
 YAML
 
   # Write a basic log config
@@ -351,7 +366,7 @@ if [ -n "$SIDE_SPACE_ID" ] && [ -n "$RANDOM_ROOM_ID" ]; then
 fi
 
 # Step 6: Write .env files
-cat > "$ROOT_DIR/apps/agent-service/.env" <<ENV
+cat > "$ROOT_DIR/apps/runtime/.env" <<ENV
 HOMESERVER_URL=$HOMESERVER_URL
 AS_TOKEN=$AS_TOKEN
 HS_TOKEN=$HS_TOKEN

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: openclaw
+description: AgentOS - Agent-first operating system on Matrix
+version: 0.1.0
+appVersion: "0.1.0"
+type: application

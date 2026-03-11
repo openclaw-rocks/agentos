@@ -7,13 +7,16 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "test": "vitest run",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
   },
   "dependencies": {
     "@openclaw/agent-sdk": "workspace:*",
-    "@openclaw/matrix-events": "workspace:*",
+    "@openclaw/protocol": "workspace:*",
     "dotenv": "^16.4.0"
   },
   "devDependencies": {

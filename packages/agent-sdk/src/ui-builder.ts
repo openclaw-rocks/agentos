@@ -1,20 +1,25 @@
 import type {
   AnyUIComponent,
+  BadgeComponent,
   ButtonComponent,
   ButtonGroupComponent,
   CardComponent,
-  CodeComponent,
+  ChartComponent,
   DiffComponent,
-  DividerComponent,
   FormComponent,
-  ImageComponent,
+  GridComponent,
   InputComponent,
+  ListComponent,
   LogComponent,
-  ProgressComponent,
+  MediaComponent,
+  MetricComponent,
+  SplitComponent,
+  StackComponent,
   StatusComponent,
-  TableComponent,
+  TabsComponent,
   TextComponent,
-} from "@openclaw/matrix-events";
+  TimelineComponent,
+} from "@openclaw/protocol";
 
 /**
  * Fluent builder for constructing A2UI component trees.
@@ -75,7 +80,11 @@ export class UIBuilder {
     return this;
   }
 
-  card(title: string, builder: (card: UIBuilder) => UIBuilder, options?: Partial<Omit<CardComponent, "type" | "title" | "children">>): this {
+  card(
+    title: string,
+    builder: (card: UIBuilder) => UIBuilder,
+    options?: Partial<Omit<CardComponent, "type" | "title" | "children">>,
+  ): this {
     const inner = builder(new UIBuilder());
     const card: CardComponent = {
       type: "card",
@@ -87,7 +96,11 @@ export class UIBuilder {
     return this;
   }
 
-  input(name: string, label: string, options?: Partial<Omit<InputComponent, "type" | "name" | "label">>): this {
+  input(
+    name: string,
+    label: string,
+    options?: Partial<Omit<InputComponent, "type" | "name" | "label">>,
+  ): this {
     this.components.push({ type: "input", name, label, ...options });
     return this;
   }
@@ -119,8 +132,109 @@ export class UIBuilder {
     return this;
   }
 
-  diff(filename: string, additions: number, deletions: number, hunks: DiffComponent["hunks"]): this {
+  diff(
+    filename: string,
+    additions: number,
+    deletions: number,
+    hunks: DiffComponent["hunks"],
+  ): this {
     this.components.push({ type: "diff", filename, additions, deletions, hunks });
+    return this;
+  }
+
+  // ─── US-1.1: Expanded Components ─────────────────────────────────
+
+  metric(
+    label: string,
+    value: string,
+    options?: Partial<Omit<MetricComponent, "type" | "label" | "value">>,
+  ): this {
+    this.components.push({ type: "metric", label, value, ...options });
+    return this;
+  }
+
+  chart(
+    chartType: ChartComponent["chartType"],
+    data: ChartComponent["data"],
+    title?: string,
+  ): this {
+    this.components.push({ type: "chart", chartType, data, title });
+    return this;
+  }
+
+  list(items: ListComponent["items"], ordered?: boolean): this {
+    this.components.push({ type: "list", items, ordered });
+    return this;
+  }
+
+  tabs(
+    tabDefs: { label: string; builder: (tab: UIBuilder) => UIBuilder }[],
+    activeTab?: number,
+  ): this {
+    const tabs: TabsComponent["tabs"] = tabDefs.map((def) => ({
+      label: def.label,
+      children: def.builder(new UIBuilder()).build(),
+    }));
+    this.components.push({ type: "tabs", tabs, activeTab });
+    return this;
+  }
+
+  avatar(name: string, url?: string, size?: "sm" | "md" | "lg"): this {
+    this.components.push({ type: "avatar", name, url, size });
+    return this;
+  }
+
+  badge(label: string, color?: BadgeComponent["color"]): this {
+    this.components.push({ type: "badge", label, color });
+    return this;
+  }
+
+  timeline(events: TimelineComponent["events"]): this {
+    this.components.push({ type: "timeline", events });
+    return this;
+  }
+
+  media(mediaType: MediaComponent["mediaType"], url: string, caption?: string): this {
+    this.components.push({ type: "media", mediaType, url, caption });
+    return this;
+  }
+
+  map(latitude: number, longitude: number, options?: { zoom?: number; label?: string }): this {
+    this.components.push({ type: "map", latitude, longitude, ...options });
+    return this;
+  }
+
+  // ─── US-1.2: Layout Components ───────────────────────────────────
+
+  grid(
+    columns: number,
+    builder: (grid: UIBuilder) => UIBuilder,
+    options?: Partial<Omit<GridComponent, "type" | "columns" | "children">>,
+  ): this {
+    const inner = builder(new UIBuilder());
+    this.components.push({ type: "grid", columns, children: inner.build(), ...options });
+    return this;
+  }
+
+  stack(
+    direction: StackComponent["direction"],
+    builder: (stack: UIBuilder) => UIBuilder,
+    gap?: number,
+  ): this {
+    const inner = builder(new UIBuilder());
+    this.components.push({ type: "stack", direction, children: inner.build(), gap });
+    return this;
+  }
+
+  split(
+    leftBuilder: (left: UIBuilder) => UIBuilder,
+    rightBuilder: (right: UIBuilder) => UIBuilder,
+    ratio?: number,
+  ): this {
+    const left = leftBuilder(new UIBuilder()).build();
+    const right = rightBuilder(new UIBuilder()).build();
+    const component: SplitComponent = { type: "split", left, right, ratio };
+    this.components.push(component);
     return this;
   }
 

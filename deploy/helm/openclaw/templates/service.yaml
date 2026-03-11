@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-runtime
+  labels:
+    app.kubernetes.io/name: openclaw-runtime
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: runtime
+spec:
+  type: {{ .Values.runtime.service.type }}
+  ports:
+    - port: {{ .Values.runtime.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: openclaw-runtime
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-shell
+  labels:
+    app.kubernetes.io/name: openclaw-shell
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: shell
+spec:
+  type: {{ .Values.shell.service.type }}
+  ports:
+    - port: {{ .Values.shell.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: openclaw-shell
+    app.kubernetes.io/instance: {{ .Release.Name }}

@@ -1,0 +1,23 @@
+# Multi-stage build for agent containers
+# Stage 1: Build
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ packages/
+COPY agents/ agents/
+RUN corepack enable && pnpm install --frozen-lockfile
+RUN pnpm --filter @openclaw/agent-sdk build
+# Agent name passed as build arg
+ARG AGENT_NAME=echo
+RUN pnpm --filter @openclaw/agent-${AGENT_NAME} build
+
+# Stage 2: Runtime
+FROM node:20-alpine
+WORKDIR /app
+# Copy only production deps + built output
+COPY --from=builder /app/node_modules node_modules
+COPY --from=builder /app/packages packages
+COPY --from=builder /app/agents agents
+ARG AGENT_NAME=echo
+ENV AGENT_NAME=${AGENT_NAME}
+CMD ["sh", "-c", "node agents/${AGENT_NAME}/dist/index.js"]

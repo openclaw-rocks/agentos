@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-runtime
+  labels:
+    app.kubernetes.io/name: openclaw-runtime
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: runtime
+spec:
+  replicas: {{ .Values.runtime.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: openclaw-runtime
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: openclaw-runtime
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: runtime
+    spec:
+      containers:
+        - name: runtime
+          image: "{{ .Values.runtime.image.repository }}:{{ .Values.runtime.image.tag }}"
+          imagePullPolicy: {{ .Values.runtime.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.runtime.port }}
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.runtime.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.runtime.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10

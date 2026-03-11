@@ -1,0 +1,108 @@
+import React, { useMemo, useSyncExternalStore } from "react";
+import type { AgentInfo } from "~/lib/agent-registry";
+import { useMatrix } from "~/lib/matrix-context";
+
+interface AgentPanelProps {
+  roomId: string;
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  online: "bg-status-success",
+  busy: "bg-status-warning",
+  starting: "bg-status-warning",
+  error: "bg-status-error",
+  offline: "bg-gray-600",
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  online: "Online",
+  busy: "Busy",
+  starting: "Starting",
+  error: "Error",
+  offline: "Offline",
+};
+
+export function AgentPanel({ roomId }: AgentPanelProps) {
+  const { client, agentRegistry } = useMatrix();
+  const room = client.getRoom(roomId);
+
+  // Re-render when agent registry changes
+  useSyncExternalStore(agentRegistry.subscribe, agentRegistry.getVersion);
+
+  const { agents, humans } = useMemo(() => {
+    if (!room)
+      return { agents: [] as AgentInfo[], humans: [] as { userId: string; name: string }[] };
+
+    const roomAgents = agentRegistry.getAgentsInRoom(room);
+    const roomHumans = agentRegistry.getHumansInRoom(room).map((m) => ({
+      userId: m.userId,
+      name: m.name ?? m.userId,
+    }));
+
+    return { agents: roomAgents, humans: roomHumans };
+  }, [room, agentRegistry]);
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="h-14 flex items-center px-4 border-b border-border">
+        <h3 className="text-sm font-semibold text-white">Members</h3>
+      </div>
+
+      <div className="flex-1 overflow-y-auto py-3">
+        {/* Agents section */}
+        {agents.length > 0 && (
+          <div className="mb-4">
+            <p className="px-4 mb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+              Agents — {agents.length}
+            </p>
+            {agents.map((agent) => (
+              <div
+                key={agent.agentId}
+                className="flex items-center gap-3 px-4 py-1.5 hover:bg-surface-2 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center relative">
+                  <span className="text-[10px] font-bold text-accent">
+                    {agent.displayName.charAt(0).toUpperCase()}
+                  </span>
+                  {/* Status dot */}
+                  <div
+                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-surface-0 ${STATUS_COLORS[agent.status] ?? "bg-gray-600"}`}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-accent truncate">{agent.displayName}</p>
+                  <p className="text-[10px] text-gray-500 truncate">
+                    {STATUS_LABELS[agent.status] ?? agent.status}
+                    {agent.capabilities.length > 0 && (
+                      <> · {agent.capabilities.slice(0, 3).join(", ")}</>
+                    )}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Humans section */}
+        <div>
+          <p className="px-4 mb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+            People — {humans.length}
+          </p>
+          {humans.map((human) => (
+            <div
+              key={human.userId}
+              className="flex items-center gap-3 px-4 py-1.5 hover:bg-surface-2 transition-colors"
+            >
+              <div className="w-7 h-7 rounded-lg bg-surface-3 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-gray-400">
+                  {human.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <p className="text-xs text-gray-300 truncate">{human.name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

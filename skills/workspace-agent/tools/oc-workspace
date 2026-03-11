@@ -1,0 +1,229 @@
+#!/usr/bin/env node
+
+/**
+ * oc-workspace — CLI tool for sending OpenClaw Workspace events to Matrix.
+ *
+ * Used by OpenClaw agents (via the workspace-agent skill) to emit custom
+ * Matrix events: registration, status, A2UI, tool calls, and task updates.
+ *
+ * Environment variables:
+ *   OC_WORKSPACE_HOMESERVER    — Matrix homeserver base URL
+ *   OC_WORKSPACE_ACCESS_TOKEN  — Matrix access token
+ *   OC_WORKSPACE_USER_ID       — Matrix user ID (e.g. @bot:openclaw.rocks)
+ *   OC_WORKSPACE_AGENT_ID      — Agent identifier (defaults to user ID)
+ *   OC_WORKSPACE_AGENT_NAME    — Display name (defaults to "Agent")
+ *   OC_WORKSPACE_CAPABILITIES  — Comma-separated capabilities
+ */
+
+const HOMESERVER = process.env.OC_WORKSPACE_HOMESERVER;
+const ACCESS_TOKEN = process.env.OC_WORKSPACE_ACCESS_TOKEN;
+const USER_ID = process.env.OC_WORKSPACE_USER_ID;
+const AGENT_ID = process.env.OC_WORKSPACE_AGENT_ID || USER_ID;
+const AGENT_NAME = process.env.OC_WORKSPACE_AGENT_NAME || "Agent";
+const CAPABILITIES = (process.env.OC_WORKSPACE_CAPABILITIES || "chat,tools")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+if (!HOMESERVER || !ACCESS_TOKEN || !USER_ID) {
+  console.error(
+    "Missing required environment variables: OC_WORKSPACE_HOMESERVER, OC_WORKSPACE_ACCESS_TOKEN, OC_WORKSPACE_USER_ID",
+  );
+  process.exit(1);
+}
+
+const BASE = HOMESERVER.replace(/\/+$/, "");
+
+// ── Matrix API helpers ──────────────────────────────────────────────
+
+async function sendStateEvent(roomId, eventType, stateKey, content) {
+  const url = `${BASE}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/${encodeURIComponent(eventType)}/${encodeURIComponent(stateKey)}`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(content),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`State event failed (${res.status}): ${body}`);
+  }
+  return res.json();
+}
+
+async function sendTimelineEvent(roomId, eventType, content) {
+  const txnId = `oc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const url = `${BASE}/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/send/${encodeURIComponent(eventType)}/${txnId}`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(content),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Timeline event failed (${res.status}): ${body}`);
+  }
+  return res.json();
+}
+
+// ── Commands ────────────────────────────────────────────────────────
+
+async function cmdRegister(roomId) {
+  await sendStateEvent(roomId, "rocks.openclaw.agent.register", AGENT_ID, {
+    agent_id: AGENT_ID,
+    display_name: AGENT_NAME,
+    description: `${AGENT_NAME} — OpenClaw workspace agent`,
+    capabilities: CAPABILITIES,
+  });
+  // Also set initial status
+  await sendStateEvent(roomId, "rocks.openclaw.agent.status", AGENT_ID, {
+    agent_id: AGENT_ID,
+    display_name: AGENT_NAME,
+    status: "online",
+    capabilities: CAPABILITIES,
+    last_active: Date.now(),
+  });
+  console.log(`Registered as ${AGENT_ID} in ${roomId}`);
+}
+
+async function cmdStatus(roomId, status) {
+  const valid = ["starting", "online", "busy", "offline", "error"];
+  if (!valid.includes(status)) {
+    console.error(`Invalid status "${status}". Must be one of: ${valid.join(", ")}`);
+    process.exit(1);
+  }
+  await sendStateEvent(roomId, "rocks.openclaw.agent.status", AGENT_ID, {
+    agent_id: AGENT_ID,
+    display_name: AGENT_NAME,
+    status,
+    capabilities: CAPABILITIES,
+    last_active: Date.now(),
+  });
+  console.log(`Status set to "${status}" in ${roomId}`);
+}
+
+async function cmdUI(roomId, componentsJson) {
+  let components;
+  try {
+    components = JSON.parse(componentsJson);
+    if (!Array.isArray(components)) components = [components];
+  } catch (e) {
+    console.error(`Invalid JSON for components: ${e.message}`);
+    process.exit(1);
+  }
+  const result = await sendTimelineEvent(roomId, "rocks.openclaw.agent.ui", {
+    components,
+    agent_id: AGENT_ID,
+  });
+  console.log(`UI sent: ${result.event_id}`);
+}
+
+async function cmdToolCall(roomId, callId, toolName, argsJson) {
+  let args;
+  try {
+    args = JSON.parse(argsJson || "{}");
+  } catch {
+    args = {};
+  }
+  const result = await sendTimelineEvent(roomId, "rocks.openclaw.agent.tool_call", {
+    call_id: callId,
+    agent_id: AGENT_ID,
+    tool_name: toolName,
+    arguments: args,
+    timestamp: Date.now(),
+  });
+  console.log(`Tool call logged: ${result.event_id}`);
+}
+
+async function cmdToolResult(roomId, callId, toolName, resultJson, durationMs, errorMsg) {
+  let resultData;
+  try {
+    resultData = JSON.parse(resultJson || "null");
+  } catch {
+    resultData = resultJson;
+  }
+  const content = {
+    call_id: callId,
+    agent_id: AGENT_ID,
+    tool_name: toolName,
+    result: resultData,
+    duration_ms: parseInt(durationMs, 10) || 0,
+    timestamp: Date.now(),
+  };
+  if (errorMsg) content.error = errorMsg;
+
+  const result = await sendTimelineEvent(roomId, "rocks.openclaw.agent.tool_result", content);
+  console.log(`Tool result logged: ${result.event_id}`);
+}
+
+async function cmdTask(roomId, taskId, title, status, assignedTo) {
+  const content = {
+    task_id: taskId,
+    title,
+    status: status || "pending",
+    created_by: AGENT_ID,
+    metadata: {},
+  };
+  if (assignedTo) content.assigned_to = assignedTo;
+  if (status === "running") content.started_at = Date.now();
+  if (status === "completed" || status === "failed") content.completed_at = Date.now();
+
+  const result = await sendTimelineEvent(roomId, "rocks.openclaw.agent.task", content);
+  console.log(`Task event sent: ${result.event_id}`);
+}
+
+// ── Main ────────────────────────────────────────────────────────────
+
+const [, , command, ...args] = process.argv;
+
+const USAGE = `Usage:
+  oc-workspace register <room_id>
+  oc-workspace status <room_id> <starting|online|busy|offline|error>
+  oc-workspace ui <room_id> '<components_json>'
+  oc-workspace tool-call <room_id> <call_id> <tool_name> '<args_json>'
+  oc-workspace tool-result <room_id> <call_id> <tool_name> '<result_json>' <duration_ms> [error]
+  oc-workspace task <room_id> <task_id> <title> <status> [assigned_to]`;
+
+async function main() {
+  try {
+    switch (command) {
+      case "register":
+        if (args.length < 1) throw new Error("Missing room_id");
+        await cmdRegister(args[0]);
+        break;
+      case "status":
+        if (args.length < 2) throw new Error("Missing room_id or status");
+        await cmdStatus(args[0], args[1]);
+        break;
+      case "ui":
+        if (args.length < 2) throw new Error("Missing room_id or components JSON");
+        await cmdUI(args[0], args[1]);
+        break;
+      case "tool-call":
+        if (args.length < 4) throw new Error("Missing arguments for tool-call");
+        await cmdToolCall(args[0], args[1], args[2], args[3]);
+        break;
+      case "tool-result":
+        if (args.length < 5) throw new Error("Missing arguments for tool-result");
+        await cmdToolResult(args[0], args[1], args[2], args[3], args[4], args[5]);
+        break;
+      case "task":
+        if (args.length < 4) throw new Error("Missing arguments for task");
+        await cmdTask(args[0], args[1], args[2], args[3], args[4]);
+        break;
+      default:
+        console.log(USAGE);
+        process.exit(command === "help" || command === "--help" ? 0 : 1);
+    }
+  } catch (err) {
+    console.error(`Error: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+main();
