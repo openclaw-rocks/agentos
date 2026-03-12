@@ -12,21 +12,21 @@
     --color-surface-3: 229 229 234;
     --color-surface-4: 216 216 220;
 
-    /* Accent — Apple system blue */
-    --color-accent: 0 113 227;
-    --color-accent-hover: 0 95 200;
-    --color-accent-muted: 0 113 227;
+    /* Accent — Siri purple (matches spectrum identity) */
+    --color-accent: 100 40 200;
+    --color-accent-hover: 80 25 175;
+    --color-accent-muted: 100 40 200;
 
     /* Status — Apple system colors */
     --color-status-success: 52 199 89;
     --color-status-warning: 255 159 10;
     --color-status-error: 255 59 48;
-    --color-status-info: 0 122 255;
+    --color-status-info: 30 100 220;
     --color-status-pending: 175 82 222;
 
     /* Border */
     --color-border: 209 209 214;
-    --color-border-focus: 0 113 227;
+    --color-border-focus: 100 40 200;
 
     /* Text */
     --color-text-primary: 29 29 31;
@@ -54,18 +54,18 @@
     --color-surface-3: 58 58 60;
     --color-surface-4: 72 72 74;
 
-    --color-accent: 10 132 255;
-    --color-accent-hover: 50 160 255;
-    --color-accent-muted: 10 132 255;
+    --color-accent: 140 60 255;
+    --color-accent-hover: 160 90 255;
+    --color-accent-muted: 140 60 255;
 
     --color-status-success: 48 209 88;
     --color-status-warning: 255 159 10;
     --color-status-error: 255 69 58;
-    --color-status-info: 10 132 255;
+    --color-status-info: 40 120 255;
     --color-status-pending: 191 90 242;
 
     --color-border: 56 56 58;
-    --color-border-focus: 10 132 255;
+    --color-border-focus: 140 60 255;
 
     --color-text-primary: 255 255 255;
     --color-text-secondary: 174 174 178;
@@ -118,6 +118,11 @@
     --siri-orange: 255 170 60;
 
     color-scheme: dark;
+  }
+
+  html, body, #root {
+    height: 100%;
+    overflow: hidden;
   }
 
   * {

@@ -1094,9 +1094,9 @@ export function ChatView({
   }, [room, messages]);
 
   return (
-    <div className="flex-1 flex flex-row h-full">
+    <div className="flex-1 flex flex-row min-h-0">
       <div
-        className="flex-1 flex flex-col h-full relative min-w-0"
+        className="flex-1 flex flex-col min-h-0 relative min-w-0 overflow-hidden"
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
@@ -1458,7 +1458,7 @@ export function ChatView({
         </div>
 
         {/* Input */}
-        <div className="px-4 pb-4 flex-shrink-0">
+        <div className="px-4 pb-2 flex-shrink-0">
           {/* Upload progress */}
           {uploading && uploadProgress && (
             <div className="mb-2">

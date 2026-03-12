@@ -589,7 +589,11 @@ export function AgentOS() {
       />
 
       {/* Main content area */}
-      <div id="main-content" className="flex-1 flex flex-col min-w-0 relative" role="main">
+      <div
+        id="main-content"
+        className="flex-1 flex flex-col min-w-0 relative overflow-hidden"
+        role="main"
+      >
         {/* Header with view mode toggle and notification bell */}
         {selectedRoomId && (
           <div className="h-12 flex items-center justify-between px-4 border-b border-border flex-shrink-0">
