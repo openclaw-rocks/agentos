@@ -14,7 +14,7 @@
 export interface RoutableAgent {
   /** Unique agent identifier (also used for @mention matching) */
   id: string;
-  /** Agent role within the workspace */
+  /** Agent role within the space */
   role: "primary" | "specialist" | "background";
   /** Free-text capability descriptions the agent advertises */
   capabilities: string[];

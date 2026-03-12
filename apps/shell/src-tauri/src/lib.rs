@@ -12,7 +12,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(
             tauri_plugin_sql::Builder::default()
-                .add_migrations("sqlite:openclaw.db", migrations)
+                .add_migrations("sqlite:agentos.db", migrations)
                 .build(),
         )
         .run(tauri::generate_context!())

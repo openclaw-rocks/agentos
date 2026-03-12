@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicovank/tauri-v2-schemas/main/tauri.conf.json",
-  "productName": "OpenClaw",
+  "productName": "AgentOS",
   "identifier": "rocks.openclaw.app",
   "version": "0.1.0",
   "build": {

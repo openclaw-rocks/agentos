@@ -5,7 +5,7 @@ export const builtInTemplates: SpaceTemplate[] = [
     id: "general",
     name: "General",
     icon: "💬",
-    description: "General-purpose workspace with a conversational assistant",
+    description: "General-purpose space with a conversational assistant",
     layout_mode: "stream",
     default_agents: [
       {

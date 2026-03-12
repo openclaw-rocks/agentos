@@ -1843,7 +1843,7 @@ function AboutSection(): React.ReactElement {
 
         <div className="pt-2 flex items-center gap-4">
           <a
-            href="https://github.com/openclaw/workspace"
+            href="https://github.com/openclaw-rocks/agentos"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-accent hover:text-accent-hover transition-colors underline"

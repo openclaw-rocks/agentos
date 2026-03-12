@@ -1,33 +1,33 @@
 #!/usr/bin/env node
 
 /**
- * oc-workspace — CLI tool for sending OpenClaw Workspace events to Matrix.
+ * oc-agentos — CLI tool for sending OpenClaw AgentOS events to Matrix.
  *
- * Used by OpenClaw agents (via the workspace-agent skill) to emit custom
+ * Used by OpenClaw agents (via the agentos-agent skill) to emit custom
  * Matrix events: registration, status, A2UI, tool calls, and task updates.
  *
  * Environment variables:
- *   OC_WORKSPACE_HOMESERVER    — Matrix homeserver base URL
- *   OC_WORKSPACE_ACCESS_TOKEN  — Matrix access token
- *   OC_WORKSPACE_USER_ID       — Matrix user ID (e.g. @bot:openclaw.rocks)
- *   OC_WORKSPACE_AGENT_ID      — Agent identifier (defaults to user ID)
- *   OC_WORKSPACE_AGENT_NAME    — Display name (defaults to "Agent")
- *   OC_WORKSPACE_CAPABILITIES  — Comma-separated capabilities
+ *   OC_AGENTOS_HOMESERVER    — Matrix homeserver base URL
+ *   OC_AGENTOS_ACCESS_TOKEN  — Matrix access token
+ *   OC_AGENTOS_USER_ID       — Matrix user ID (e.g. @bot:openclaw.rocks)
+ *   OC_AGENTOS_AGENT_ID      — Agent identifier (defaults to user ID)
+ *   OC_AGENTOS_AGENT_NAME    — Display name (defaults to "Agent")
+ *   OC_AGENTOS_CAPABILITIES  — Comma-separated capabilities
  */
 
-const HOMESERVER = process.env.OC_WORKSPACE_HOMESERVER;
-const ACCESS_TOKEN = process.env.OC_WORKSPACE_ACCESS_TOKEN;
-const USER_ID = process.env.OC_WORKSPACE_USER_ID;
-const AGENT_ID = process.env.OC_WORKSPACE_AGENT_ID || USER_ID;
-const AGENT_NAME = process.env.OC_WORKSPACE_AGENT_NAME || "Agent";
-const CAPABILITIES = (process.env.OC_WORKSPACE_CAPABILITIES || "chat,tools")
+const HOMESERVER = process.env.OC_AGENTOS_HOMESERVER;
+const ACCESS_TOKEN = process.env.OC_AGENTOS_ACCESS_TOKEN;
+const USER_ID = process.env.OC_AGENTOS_USER_ID;
+const AGENT_ID = process.env.OC_AGENTOS_AGENT_ID || USER_ID;
+const AGENT_NAME = process.env.OC_AGENTOS_AGENT_NAME || "Agent";
+const CAPABILITIES = (process.env.OC_AGENTOS_CAPABILITIES || "chat,tools")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
 
 if (!HOMESERVER || !ACCESS_TOKEN || !USER_ID) {
   console.error(
-    "Missing required environment variables: OC_WORKSPACE_HOMESERVER, OC_WORKSPACE_ACCESS_TOKEN, OC_WORKSPACE_USER_ID",
+    "Missing required environment variables: OC_AGENTOS_HOMESERVER, OC_AGENTOS_ACCESS_TOKEN, OC_AGENTOS_USER_ID",
   );
   process.exit(1);
 }
@@ -77,7 +77,7 @@ async function cmdRegister(roomId) {
   await sendStateEvent(roomId, "rocks.openclaw.agent.register", AGENT_ID, {
     agent_id: AGENT_ID,
     display_name: AGENT_NAME,
-    description: `${AGENT_NAME} — OpenClaw workspace agent`,
+    description: `${AGENT_NAME} — OpenClaw AgentOS agent`,
     capabilities: CAPABILITIES,
   });
   // Also set initial status
@@ -182,12 +182,12 @@ async function cmdTask(roomId, taskId, title, status, assignedTo) {
 const [, , command, ...args] = process.argv;
 
 const USAGE = `Usage:
-  oc-workspace register <room_id>
-  oc-workspace status <room_id> <starting|online|busy|offline|error>
-  oc-workspace ui <room_id> '<components_json>'
-  oc-workspace tool-call <room_id> <call_id> <tool_name> '<args_json>'
-  oc-workspace tool-result <room_id> <call_id> <tool_name> '<result_json>' <duration_ms> [error]
-  oc-workspace task <room_id> <task_id> <title> <status> [assigned_to]`;
+  oc-agentos register <room_id>
+  oc-agentos status <room_id> <starting|online|busy|offline|error>
+  oc-agentos ui <room_id> '<components_json>'
+  oc-agentos tool-call <room_id> <call_id> <tool_name> '<args_json>'
+  oc-agentos tool-result <room_id> <call_id> <tool_name> '<result_json>' <duration_ms> [error]
+  oc-agentos task <room_id> <task_id> <title> <status> [assigned_to]`;
 
 async function main() {
   try {

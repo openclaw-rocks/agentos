@@ -7,7 +7,7 @@ Agent-first operating system built on Matrix protocol, powered by OpenClaw.
 - `apps/shell` — React web client / AgentOS shell (Vite + TypeScript + Tailwind)
 - `apps/runtime` — Matrix Application Service for agent orchestration
 - `packages/protocol` — Shared custom Matrix event type definitions
-- `packages/agent-sdk` — SDK for building workspace agents
+- `packages/agent-sdk` — SDK for building agents
 - `packages/a2ui` — A2UI component registry and validation
 - `agents/echo` — Example echo agent
 - `agents/assistant` — Claude-powered assistant agent

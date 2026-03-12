@@ -61,7 +61,7 @@ context — the shell never makes domain decisions.
 ### 5. Local-First, Cloud-Optional
 
 User data lives on-device by default (Matrix sync + local storage). The semantic
-index runs locally. Cloud features (federation, shared workspaces, hosted agents)
+index runs locally. Cloud features (federation, shared spaces, hosted agents)
 are opt-in additions, not requirements.
 
 ### 6. Progressive Disclosure
@@ -146,7 +146,7 @@ is earned, not imposed.
 | Observability | Operator + ServiceMonitor | Prometheus metrics, Grafana dashboards, structured logging |
 | Browser automation | Chromium sidecar | Agents that need web access get headless browser via operator config |
 | Local LLM fallback | Ollama sidecar | On-device inference for privacy-sensitive operations |
-| Channel bridges | 20+ channel plugins | Bridge WhatsApp, Telegram, Slack messages into Matrix workspace |
+| Channel bridges | 20+ channel plugins | Bridge WhatsApp, Telegram, Slack messages into AgentOS |
 
 ### What We Build (Unique to AgentOS)
 

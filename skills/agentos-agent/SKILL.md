@@ -1,5 +1,5 @@
 ---
-name: workspace-agent
+name: agentos-agent
 description: Connect an OpenClaw agent to AgentOS on Matrix. Enables rich A2UI rendering, tool call logging, agent status, and task delegation.
 user-invocable: false
 metadata:
@@ -12,9 +12,9 @@ metadata:
           {
             "env":
               [
-                "OC_WORKSPACE_HOMESERVER",
-                "OC_WORKSPACE_ACCESS_TOKEN",
-                "OC_WORKSPACE_USER_ID",
+                "OC_AGENTOS_HOMESERVER",
+                "OC_AGENTOS_ACCESS_TOKEN",
+                "OC_AGENTOS_USER_ID",
               ],
           },
       },
@@ -27,25 +27,25 @@ You are connected to **AgentOS** — a collaborative environment on the Matrix p
 
 ## Identity
 
-You are an agent in this workspace. Your identity is defined by environment variables:
+You are an agent in this space. Your identity is defined by environment variables:
 
-- `OC_WORKSPACE_USER_ID` — your Matrix user ID (e.g. `@assistant:openclaw.rocks`)
-- `OC_WORKSPACE_HOMESERVER` — the Matrix homeserver URL (e.g. `https://matrix.openclaw.rocks`)
-- `OC_WORKSPACE_ACCESS_TOKEN` — your Matrix access token
-- `OC_WORKSPACE_AGENT_ID` — your agent ID (defaults to your Matrix user ID)
-- `OC_WORKSPACE_AGENT_NAME` — your display name (defaults to "Agent")
-- `OC_WORKSPACE_CAPABILITIES` — comma-separated list of your capabilities
+- `OC_AGENTOS_USER_ID` — your Matrix user ID (e.g. `@assistant:openclaw.rocks`)
+- `OC_AGENTOS_HOMESERVER` — the Matrix homeserver URL (e.g. `https://matrix.openclaw.rocks`)
+- `OC_AGENTOS_ACCESS_TOKEN` — your Matrix access token
+- `OC_AGENTOS_AGENT_ID` — your agent ID (defaults to your Matrix user ID)
+- `OC_AGENTOS_AGENT_NAME` — your display name (defaults to "Agent")
+- `OC_AGENTOS_CAPABILITIES` — comma-separated list of your capabilities
 
 ## How to Send AgentOS Events
 
-Use the `oc-workspace` tool (located at `skills/workspace-agent/tools/oc-workspace`) to send custom Matrix events. This is a Node.js script that calls the Matrix Client-Server API.
+Use the `oc-agentos` tool (located at `skills/agentos-agent/tools/oc-agentos`) to send custom Matrix events. This is a Node.js script that calls the Matrix Client-Server API.
 
 ### Commands
 
 **Register yourself in a room** (do this when you first join):
 
 ```bash
-oc-workspace register <room_id>
+oc-agentos register <room_id>
 ```
 
 This sends a `rocks.openclaw.agent.register` state event so AgentOS knows you're an agent.
@@ -53,10 +53,10 @@ This sends a `rocks.openclaw.agent.register` state event so AgentOS knows you're
 **Set your status** (do this when starting, finishing tasks, or encountering errors):
 
 ```bash
-oc-workspace status <room_id> online
-oc-workspace status <room_id> busy
-oc-workspace status <room_id> offline
-oc-workspace status <room_id> error
+oc-agentos status <room_id> online
+oc-agentos status <room_id> busy
+oc-agentos status <room_id> offline
+oc-agentos status <room_id> error
 ```
 
 Valid statuses: `starting`, `online`, `busy`, `offline`, `error`
@@ -64,25 +64,25 @@ Valid statuses: `starting`, `online`, `busy`, `offline`, `error`
 **Send rich UI components** (use for structured output instead of plain text):
 
 ```bash
-oc-workspace ui <room_id> '<json_components>'
+oc-agentos ui <room_id> '<json_components>'
 ```
 
 The JSON is an array of A2UI component objects. Example:
 
 ```bash
-oc-workspace ui '!roomid:server' '[{"type":"card","title":"Deploy Status","children":[{"type":"status","label":"Build","value":"success","detail":"All tests passed"},{"type":"progress","label":"Deploying","value":75},{"type":"button_group","buttons":[{"type":"button","label":"View Logs","action":"view_logs","style":"secondary"},{"type":"button","label":"Cancel","action":"cancel_deploy","style":"danger"}]}]}'
+oc-agentos ui '!roomid:server' '[{"type":"card","title":"Deploy Status","children":[{"type":"status","label":"Build","value":"success","detail":"All tests passed"},{"type":"progress","label":"Deploying","value":75},{"type":"button_group","buttons":[{"type":"button","label":"View Logs","action":"view_logs","style":"secondary"},{"type":"button","label":"Cancel","action":"cancel_deploy","style":"danger"}]}]}'
 ```
 
 **Log a tool call** (do this when you invoke a tool):
 
 ```bash
-oc-workspace tool-call <room_id> <call_id> <tool_name> '<arguments_json>'
+oc-agentos tool-call <room_id> <call_id> <tool_name> '<arguments_json>'
 ```
 
 **Log a tool result** (do this when a tool returns):
 
 ```bash
-oc-workspace tool-result <room_id> <call_id> <tool_name> '<result_json>' <duration_ms> [error_message]
+oc-agentos tool-result <room_id> <call_id> <tool_name> '<result_json>' <duration_ms> [error_message]
 ```
 
 ## A2UI Component Types
@@ -168,13 +168,13 @@ When sending rich UI, use these component types:
 
 ## Behavioral Guidelines
 
-1. **Always register** when you join a new room. This lets the workspace UI show you as an agent with your capabilities.
+1. **Always register** when you join a new room. This lets the space UI show you as an agent with your capabilities.
 
 2. **Set status to busy** when processing complex requests, and back to **online** when done.
 
 3. **Use A2UI for structured output.** When showing status dashboards, progress, tables, or interactive choices — use rich UI components instead of plain text. For simple conversational replies, plain text is fine.
 
-4. **Log tool calls.** When you use bash, browser, or other tools, log them via `oc-workspace tool-call` and `oc-workspace tool-result` so humans can see what you're doing.
+4. **Log tool calls.** When you use bash, browser, or other tools, log them via `oc-agentos tool-call` and `oc-agentos tool-result` so humans can see what you're doing.
 
 5. **Respond to actions.** When a human clicks a button or submits a form in your UI, you'll receive a message with the action details. Handle it and respond.
 

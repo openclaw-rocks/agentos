@@ -56,13 +56,13 @@ Slack and Teams were designed for humans. Bots were an afterthought, limited to 
 ## Project Structure
 
 ```
-openclaw-workspace/
+openclaw-agentos/
   apps/
     shell/                React web client (AgentOS shell)
     runtime/              Matrix Application Service for agent orchestration
   packages/
     protocol/             Custom Matrix event type definitions
-    agent-sdk/            SDK for building workspace agents
+    agent-sdk/            SDK for building agents
     a2ui/                 A2UI component registry and validation
   agents/
     echo/                 Example agent demonstrating all A2UI components
@@ -146,8 +146,8 @@ State events persist as room state and survive restarts. When an agent joins a r
 
 ```bash
 # Clone the repo
-git clone https://github.com/openclaw-rocks/workspace.git
-cd workspace
+git clone https://github.com/openclaw-rocks/agentos.git
+cd agentos
 
 # Install dependencies
 pnpm install

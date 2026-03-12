@@ -230,7 +230,7 @@ HQ_SPACE_RESPONSE=$(curl -s "$HOMESERVER_URL/_matrix/client/v3/createRoom" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "OpenClaw HQ",
-    "topic": "Main workspace for the OpenClaw team",
+    "topic": "Main space for the OpenClaw team",
     "preset": "public_chat",
     "creation_content": {"type": "m.space"},
     "room_alias_name": "openclaw-hq"
@@ -249,7 +249,7 @@ GENERAL_RESPONSE=$(curl -s "$HOMESERVER_URL/_matrix/client/v3/createRoom" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "General",
-    "topic": "Main workspace channel",
+    "topic": "Main channel",
     "preset": "public_chat",
     "room_alias_name": "general"
   }') || true

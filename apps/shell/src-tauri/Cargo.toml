@@ -1,12 +1,12 @@
 [package]
-name = "openclaw"
+name = "agentos"
 version = "0.1.0"
 description = "AgentOS — agent-first operating system built on the Matrix protocol"
 authors = ["OpenClaw"]
 edition = "2021"
 
 [lib]
-name = "openclaw_lib"
+name = "agentos_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

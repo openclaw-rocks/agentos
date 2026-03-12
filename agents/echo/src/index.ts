@@ -112,7 +112,7 @@ const agent = new BaseAgent(
         const ui = new UIBuilder()
           .card("Create New Agent", (card) =>
             card
-              .text("Configure and deploy a new agent to this workspace.")
+              .text("Configure and deploy a new agent to this space.")
               .divider()
               .form(
                 "create_agent",
