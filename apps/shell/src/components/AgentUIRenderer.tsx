@@ -85,10 +85,10 @@ function UIComponent({
 
 function TextRenderer({ component }: { component: Extract<AnyUIComponent, { type: "text" }> }) {
   const variants: Record<string, string> = {
-    heading: "text-base font-semibold text-white",
-    body: "text-sm text-gray-300",
-    caption: "text-xs text-gray-500",
-    code: "text-sm font-mono text-gray-300 bg-surface-3 px-1.5 py-0.5 rounded",
+    heading: "text-base font-semibold text-primary",
+    body: "text-sm text-secondary",
+    caption: "text-xs text-muted",
+    code: "text-sm font-mono text-secondary bg-surface-3 px-1.5 py-0.5 rounded",
   };
   return <p className={variants[component.variant ?? "body"]}>{component.content}</p>;
 }
@@ -101,10 +101,10 @@ function ButtonRenderer({
   onAction: (action: string) => void;
 }) {
   const styles: Record<string, string> = {
-    primary: "bg-accent hover:bg-accent-hover text-white",
-    secondary: "bg-surface-3 hover:bg-surface-4 text-gray-200",
+    primary: "bg-accent hover:bg-accent-hover text-inverse",
+    secondary: "bg-surface-3 hover:bg-surface-4 text-primary",
     danger: "bg-status-error/20 hover:bg-status-error/30 text-status-error",
-    ghost: "hover:bg-surface-3 text-gray-400",
+    ghost: "hover:bg-surface-3 text-secondary",
   };
   return (
     <button
@@ -138,7 +138,7 @@ function ButtonGroupRenderer({
 function CodeRenderer({ component }: { component: Extract<AnyUIComponent, { type: "code" }> }) {
   return (
     <pre className="bg-surface-3 rounded-lg p-3 overflow-x-auto">
-      <code className="text-xs font-mono text-gray-300">{component.content}</code>
+      <code className="text-xs font-mono text-secondary">{component.content}</code>
     </pre>
   );
 }
@@ -158,8 +158,8 @@ function StatusRenderer({ component }: { component: Extract<AnyUIComponent, { ty
       className="flex items-center gap-2 py-0.5"
     >
       <div className={`w-2 h-2 rounded-full ${dotColors[component.value]}`} aria-hidden="true" />
-      <span className="text-xs font-medium text-gray-300">{component.label}</span>
-      {component.detail && <span className="text-xs text-gray-500">{component.detail}</span>}
+      <span className="text-xs font-medium text-secondary">{component.label}</span>
+      {component.detail && <span className="text-xs text-muted">{component.detail}</span>}
     </div>
   );
 }
@@ -173,8 +173,8 @@ function ProgressRenderer({
   return (
     <div className="py-1">
       <div className="flex justify-between text-xs mb-1">
-        {component.label && <span className="text-gray-400">{component.label}</span>}
-        {component.status && <span className="text-gray-500">{component.status}</span>}
+        {component.label && <span className="text-secondary">{component.label}</span>}
+        {component.status && <span className="text-muted">{component.status}</span>}
       </div>
       <div
         role="progressbar"
@@ -202,7 +202,7 @@ function TableRenderer({ component }: { component: Extract<AnyUIComponent, { typ
             {component.headers.map((h, i) => (
               <th
                 key={i}
-                className="text-left py-1 px-2 text-gray-500 font-medium border-b border-border"
+                className="text-left py-1 px-2 text-muted font-medium border-b border-border"
               >
                 {h}
               </th>
@@ -214,7 +214,7 @@ function TableRenderer({ component }: { component: Extract<AnyUIComponent, { typ
         {component.rows.map((row, i) => (
           <tr key={i}>
             {row.map((cell, j) => (
-              <td key={j} className="py-1 px-2 text-gray-300 border-b border-border/50">
+              <td key={j} className="py-1 px-2 text-secondary border-b border-border/50">
                 {cell}
               </td>
             ))}
@@ -235,8 +235,8 @@ function CardRenderer({
   return (
     <div className="bg-surface-2 border border-border rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-border">
-        <h3 className="text-sm font-semibold text-white">{component.title}</h3>
-        {component.subtitle && <p className="text-xs text-gray-500 mt-0.5">{component.subtitle}</p>}
+        <h3 className="text-sm font-semibold text-primary">{component.title}</h3>
+        {component.subtitle && <p className="text-xs text-muted mt-0.5">{component.subtitle}</p>}
       </div>
       <div className="px-4 py-3 space-y-2">
         {component.children.map((child, i) => (
@@ -253,14 +253,14 @@ function InputRenderer({ component }: { component: Extract<AnyUIComponent, { typ
   if (component.inputType === "select") {
     return (
       <div>
-        <label htmlFor={inputId} className="block text-xs font-medium text-gray-400 mb-1">
+        <label htmlFor={inputId} className="block text-xs font-medium text-secondary mb-1">
           {component.label}
         </label>
         <select
           id={inputId}
           name={component.name}
           aria-required={component.required}
-          className="w-full px-3 py-1.5 bg-surface-3 border border-border rounded-lg text-xs text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-full px-3 py-1.5 bg-surface-3 border border-border rounded-lg text-xs text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           {component.options?.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -275,7 +275,7 @@ function InputRenderer({ component }: { component: Extract<AnyUIComponent, { typ
   if (component.inputType === "textarea") {
     return (
       <div>
-        <label htmlFor={inputId} className="block text-xs font-medium text-gray-400 mb-1">
+        <label htmlFor={inputId} className="block text-xs font-medium text-secondary mb-1">
           {component.label}
         </label>
         <textarea
@@ -284,7 +284,7 @@ function InputRenderer({ component }: { component: Extract<AnyUIComponent, { typ
           placeholder={component.placeholder}
           aria-required={component.required}
           rows={3}
-          className="w-full px-3 py-1.5 bg-surface-3 border border-border rounded-lg text-xs text-white placeholder-gray-500 resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-full px-3 py-1.5 bg-surface-3 border border-border rounded-lg text-xs text-primary placeholder-muted resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
       </div>
     );
@@ -292,7 +292,7 @@ function InputRenderer({ component }: { component: Extract<AnyUIComponent, { typ
 
   return (
     <div>
-      <label htmlFor={inputId} className="block text-xs font-medium text-gray-400 mb-1">
+      <label htmlFor={inputId} className="block text-xs font-medium text-secondary mb-1">
         {component.label}
       </label>
       <input
@@ -302,7 +302,7 @@ function InputRenderer({ component }: { component: Extract<AnyUIComponent, { typ
         placeholder={component.placeholder}
         required={component.required}
         aria-required={component.required}
-        className="w-full px-3 py-1.5 bg-surface-3 border border-border rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="w-full px-3 py-1.5 bg-surface-3 border border-border rounded-lg text-xs text-primary placeholder-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       />
     </div>
   );
@@ -329,7 +329,7 @@ function FormRenderer({
       ))}
       <button
         type="submit"
-        className="px-4 py-2 bg-accent hover:bg-accent-hover text-white text-xs font-medium rounded-lg transition-colors"
+        className="px-4 py-2 bg-accent hover:bg-accent-hover text-inverse text-xs font-medium rounded-lg transition-colors"
       >
         {component.submitLabel ?? "Submit"}
       </button>
@@ -342,7 +342,7 @@ function LogRenderer({ component }: { component: Extract<AnyUIComponent, { type:
     info: "text-status-info",
     warn: "text-status-warning",
     error: "text-status-error",
-    debug: "text-gray-500",
+    debug: "text-muted",
   };
 
   return (
@@ -352,13 +352,13 @@ function LogRenderer({ component }: { component: Extract<AnyUIComponent, { type:
     >
       {component.lines.map((line, i) => (
         <div key={i} className="flex gap-2 leading-5">
-          {line.timestamp && <span className="text-gray-600 flex-shrink-0">{line.timestamp}</span>}
+          {line.timestamp && <span className="text-faint flex-shrink-0">{line.timestamp}</span>}
           {line.level && (
-            <span className={`flex-shrink-0 w-12 ${levelColors[line.level] ?? "text-gray-400"}`}>
+            <span className={`flex-shrink-0 w-12 ${levelColors[line.level] ?? "text-secondary"}`}>
               [{line.level}]
             </span>
           )}
-          <span className="text-gray-300">{line.message}</span>
+          <span className="text-secondary">{line.message}</span>
         </div>
       ))}
     </div>
@@ -369,20 +369,18 @@ function DiffRenderer({ component }: { component: Extract<AnyUIComponent, { type
   return (
     <div className="bg-surface-3 rounded-lg overflow-hidden">
       <div className="px-3 py-2 border-b border-border flex items-center justify-between">
-        <span className="text-xs font-mono text-gray-300">{component.filename}</span>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs font-mono text-secondary">{component.filename}</span>
+        <span className="text-xs text-muted">
           <span className="text-status-success">+{component.additions}</span>{" "}
           <span className="text-status-error">-{component.deletions}</span>
         </span>
       </div>
       {component.hunks.map((hunk, i) => (
         <div key={i}>
-          <div className="px-3 py-1 bg-surface-4 text-xs font-mono text-gray-500">
-            {hunk.header}
-          </div>
+          <div className="px-3 py-1 bg-surface-4 text-xs font-mono text-muted">{hunk.header}</div>
           <div className="px-3">
             {hunk.lines.map((line, j) => {
-              let className = "text-gray-300";
+              let className = "text-secondary";
               let bg = "";
               if (line.startsWith("+")) {
                 className = "text-status-success";
@@ -410,17 +408,17 @@ function MetricRenderer({ component }: { component: Extract<AnyUIComponent, { ty
   const trendIcons: Record<string, { symbol: string; color: string }> = {
     up: { symbol: "\u2191", color: "text-status-success" },
     down: { symbol: "\u2193", color: "text-status-error" },
-    flat: { symbol: "\u2192", color: "text-gray-400" },
+    flat: { symbol: "\u2192", color: "text-secondary" },
   };
   const trend = component.trend ? trendIcons[component.trend] : null;
   return (
     <div className="py-1">
-      <div className="text-xs text-gray-500">{component.label}</div>
+      <div className="text-xs text-muted">{component.label}</div>
       <div className="flex items-baseline gap-1.5">
-        <span className="text-lg font-semibold text-white">
+        <span className="text-lg font-semibold text-primary">
           {component.value}
           {component.unit && (
-            <span className="text-xs font-normal text-gray-400 ml-0.5">{component.unit}</span>
+            <span className="text-xs font-normal text-secondary ml-0.5">{component.unit}</span>
           )}
         </span>
         {trend && (
@@ -441,7 +439,7 @@ function ChartRenderer({ component }: { component: Extract<AnyUIComponent, { typ
     return (
       <div className="bg-surface-2 border border-border rounded-xl p-4">
         {component.title && (
-          <h4 className="text-xs font-semibold text-white mb-3">{component.title}</h4>
+          <h4 className="text-xs font-semibold text-primary mb-3">{component.title}</h4>
         )}
         <div className="space-y-1.5">
           {component.data.labels.map((label, i) => {
@@ -453,8 +451,8 @@ function ChartRenderer({ component }: { component: Extract<AnyUIComponent, { typ
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                   style={{ backgroundColor: component.data.datasets[0]?.color ?? "#6366f1" }}
                 />
-                <span className="text-gray-300 flex-1">{label}</span>
-                <span className="text-gray-500">{pct}%</span>
+                <span className="text-secondary flex-1">{label}</span>
+                <span className="text-muted">{pct}%</span>
               </div>
             );
           })}
@@ -467,14 +465,14 @@ function ChartRenderer({ component }: { component: Extract<AnyUIComponent, { typ
   return (
     <div className="bg-surface-2 border border-border rounded-xl p-4">
       {component.title && (
-        <h4 className="text-xs font-semibold text-white mb-3">{component.title}</h4>
+        <h4 className="text-xs font-semibold text-primary mb-3">{component.title}</h4>
       )}
       <div className="space-y-2">
         {component.data.labels.map((label, i) => (
           <div key={i}>
             <div className="flex justify-between text-xs mb-0.5">
-              <span className="text-gray-400">{label}</span>
-              <span className="text-gray-500">{component.data.datasets[0]?.values[i]}</span>
+              <span className="text-secondary">{label}</span>
+              <span className="text-muted">{component.data.datasets[0]?.values[i]}</span>
             </div>
             <div className="h-1.5 bg-surface-3 rounded-full overflow-hidden">
               <div
@@ -502,13 +500,13 @@ function ListRenderer({
   const Tag = component.ordered ? "ol" : "ul";
   return (
     <Tag
-      className={`text-xs text-gray-300 space-y-1 ${component.ordered ? "list-decimal" : "list-disc"} ml-4`}
+      className={`text-xs text-secondary space-y-1 ${component.ordered ? "list-decimal" : "list-disc"} ml-4`}
     >
       {component.items.map((item, i) => (
-        <li key={i} className={item.action ? "cursor-pointer hover:text-white" : ""}>
+        <li key={i} className={item.action ? "cursor-pointer hover:text-primary" : ""}>
           {item.action ? (
             <button
-              className="text-left hover:text-white transition-colors"
+              className="text-left hover:text-primary transition-colors"
               onClick={() => onAction(item.action!)}
             >
               {item.text}
@@ -560,7 +558,7 @@ function TabsRenderer({
             className={`px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
               i === activeTab
                 ? "text-accent border-b-2 border-accent"
-                : "text-gray-500 hover:text-gray-300"
+                : "text-muted hover:text-secondary"
             }`}
           >
             {tab.label}
@@ -620,7 +618,7 @@ function BadgeRenderer({ component }: { component: Extract<AnyUIComponent, { typ
     warning: "bg-status-warning/20 text-status-warning",
     error: "bg-status-error/20 text-status-error",
     info: "bg-status-info/20 text-status-info",
-    neutral: "bg-surface-3 text-gray-400",
+    neutral: "bg-surface-3 text-secondary",
   };
   return (
     <span
@@ -661,9 +659,9 @@ function TimelineRenderer({
             )}
           </div>
           <div className="pb-3">
-            <div className="text-xs font-medium text-gray-300">{event.label}</div>
-            {event.timestamp && <div className="text-xs text-gray-500">{event.timestamp}</div>}
-            {event.detail && <div className="text-xs text-gray-400 mt-0.5">{event.detail}</div>}
+            <div className="text-xs font-medium text-secondary">{event.label}</div>
+            {event.timestamp && <div className="text-xs text-muted">{event.timestamp}</div>}
+            {event.detail && <div className="text-xs text-secondary mt-0.5">{event.detail}</div>}
           </div>
         </div>
       ))}
@@ -684,7 +682,7 @@ function MediaRenderer({ component }: { component: Extract<AnyUIComponent, { typ
       ) : (
         <img src={component.url} alt={component.caption ?? ""} className="rounded-lg max-w-full" />
       )}
-      {component.caption && <p className="text-xs text-gray-500 mt-1">{component.caption}</p>}
+      {component.caption && <p className="text-xs text-muted mt-1">{component.caption}</p>}
     </div>
   );
 }
@@ -693,11 +691,11 @@ function MapRenderer({ component }: { component: Extract<AnyUIComponent, { type:
   const zoom = component.zoom ?? 13;
   return (
     <div className="bg-surface-2 border border-border rounded-xl p-4 text-center">
-      <div className="text-xs text-gray-500 mb-1">{component.label ?? "Location"}</div>
-      <div className="text-xs text-gray-400">
+      <div className="text-xs text-muted mb-1">{component.label ?? "Location"}</div>
+      <div className="text-xs text-secondary">
         {component.latitude.toFixed(4)}, {component.longitude.toFixed(4)}
       </div>
-      <div className="text-xs text-gray-500 mt-0.5">Zoom: {zoom}</div>
+      <div className="text-xs text-muted mt-0.5">Zoom: {zoom}</div>
     </div>
   );
 }

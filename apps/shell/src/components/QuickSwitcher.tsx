@@ -148,11 +148,11 @@ export function QuickSwitcher({ onSelectSpace, onSelectRoom, onClose }: QuickSwi
         flatIndex === selectedIndex ? "bg-surface-3" : "hover:bg-surface-2"
       }`}
     >
-      <span className="text-gray-500 text-sm flex-shrink-0">
+      <span className="text-muted text-sm flex-shrink-0">
         {item.kind === "space" ? "\u25C6" : "#"}
       </span>
-      <span className="text-sm text-gray-300 truncate flex-1">{item.name}</span>
-      <span className="text-[10px] text-gray-600 uppercase">{item.kind}</span>
+      <span className="text-sm text-secondary truncate flex-1">{item.name}</span>
+      <span className="text-[10px] text-faint uppercase">{item.kind}</span>
     </button>
   );
 
@@ -175,22 +175,22 @@ export function QuickSwitcher({ onSelectSpace, onSelectRoom, onClose }: QuickSwi
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Switch to space or channel..."
-            className="w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none"
+            className="w-full bg-transparent text-sm text-primary placeholder-muted focus:outline-none"
           />
         </div>
 
         <div className="max-h-64 overflow-y-auto py-1">
-          {!hasResults && <p className="px-4 py-6 text-sm text-gray-500 text-center">No results</p>}
+          {!hasResults && <p className="px-4 py-6 text-sm text-muted text-center">No results</p>}
 
           {hasResults && isShowingRecent && (
-            <p className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+            <p className="px-4 pt-2 pb-1 text-[10px] font-semibold text-muted uppercase tracking-wider">
               Recent
             </p>
           )}
 
           {/* Spaces section */}
           {grouped.spaces.length > 0 && !isShowingRecent && (
-            <p className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+            <p className="px-4 pt-2 pb-1 text-[10px] font-semibold text-muted uppercase tracking-wider">
               Spaces
             </p>
           )}
@@ -198,23 +198,23 @@ export function QuickSwitcher({ onSelectSpace, onSelectRoom, onClose }: QuickSwi
 
           {/* Rooms section */}
           {grouped.rooms.length > 0 && !isShowingRecent && (
-            <p className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+            <p className="px-4 pt-2 pb-1 text-[10px] font-semibold text-muted uppercase tracking-wider">
               Rooms
             </p>
           )}
           {grouped.rooms.map((item, i) => renderItem(item, roomsStartIndex + i))}
         </div>
 
-        <div className="px-4 py-2 border-t border-border flex gap-3 text-[10px] text-gray-600">
+        <div className="px-4 py-2 border-t border-border flex gap-3 text-[10px] text-faint">
           <span>
-            <kbd className="px-1 py-0.5 bg-surface-3 rounded text-gray-500">{"\u2191\u2193"}</kbd>{" "}
+            <kbd className="px-1 py-0.5 bg-surface-3 rounded text-muted">{"\u2191\u2193"}</kbd>{" "}
             navigate
           </span>
           <span>
-            <kbd className="px-1 py-0.5 bg-surface-3 rounded text-gray-500">{"\u21B5"}</kbd> select
+            <kbd className="px-1 py-0.5 bg-surface-3 rounded text-muted">{"\u21B5"}</kbd> select
           </span>
           <span>
-            <kbd className="px-1 py-0.5 bg-surface-3 rounded text-gray-500">esc</kbd> close
+            <kbd className="px-1 py-0.5 bg-surface-3 rounded text-muted">esc</kbd> close
           </span>
         </div>
       </div>

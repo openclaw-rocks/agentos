@@ -27,10 +27,40 @@ export default {
           DEFAULT: "rgb(var(--color-border) / <alpha-value>)",
           focus: "rgb(var(--color-border-focus) / <alpha-value>)",
         },
+        siri: {
+          teal: "rgb(var(--siri-teal) / <alpha-value>)",
+          pink: "rgb(var(--siri-pink) / <alpha-value>)",
+          purple: "rgb(var(--siri-purple) / <alpha-value>)",
+          blue: "rgb(var(--siri-blue) / <alpha-value>)",
+          orange: "rgb(var(--siri-orange) / <alpha-value>)",
+        },
+      },
+      textColor: {
+        primary: "rgb(var(--color-text-primary) / <alpha-value>)",
+        secondary: "rgb(var(--color-text-secondary) / <alpha-value>)",
+        muted: "rgb(var(--color-text-muted) / <alpha-value>)",
+        faint: "rgb(var(--color-text-faint) / <alpha-value>)",
+        inverse: "rgb(var(--color-text-inverse) / <alpha-value>)",
+      },
+      placeholderColor: {
+        muted: "rgb(var(--color-placeholder) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "Fira Code", "monospace"],
+      },
+      borderRadius: {
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+      },
+      keyframes: {
+        "float-up": {
+          "0%": { opacity: "1", transform: "translateX(-50%) translateY(0)" },
+          "100%": { opacity: "0", transform: "translateX(-50%) translateY(-80px)" },
+        },
+      },
+      animation: {
+        "float-up": "float-up 3s ease-out forwards",
       },
     },
   },

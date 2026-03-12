@@ -32,7 +32,7 @@ export function CanvasView({ roomId }: CanvasViewProps) {
         <div className="text-center">
           <div className="w-12 h-12 rounded-xl bg-surface-2 flex items-center justify-center mx-auto mb-3">
             <svg
-              className="w-6 h-6 text-gray-500"
+              className="w-6 h-6 text-muted"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -45,8 +45,8 @@ export function CanvasView({ roomId }: CanvasViewProps) {
               />
             </svg>
           </div>
-          <p className="text-sm text-gray-400 mb-1">No UI components yet</p>
-          <p className="text-xs text-gray-500">
+          <p className="text-sm text-secondary mb-1">No UI components yet</p>
+          <p className="text-xs text-muted">
             Agent UI components will appear here as cards in a grid layout
           </p>
         </div>
@@ -69,7 +69,7 @@ export function CanvasView({ roomId }: CanvasViewProps) {
                 </span>
               </div>
               <span className="text-xs font-medium text-accent truncate">{msg.senderName}</span>
-              <span className="text-[10px] text-gray-600 ml-auto">
+              <span className="text-[10px] text-faint ml-auto">
                 {new Date(msg.timestamp).toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",

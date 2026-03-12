@@ -20,11 +20,11 @@ export function WelcomeBanner({ onDismiss }: WelcomeBannerProps) {
       </div>
 
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-semibold text-white mb-1">Welcome to AgentOS</h3>
-        <p className="text-xs text-gray-400 leading-relaxed">
+        <h3 className="text-sm font-semibold text-primary mb-1">Welcome to AgentOS</h3>
+        <p className="text-xs text-secondary leading-relaxed">
           Your agent-first operating system powered by the Matrix protocol. Create spaces, invite
           agents, and collaborate in real-time. Use{" "}
-          <kbd className="px-1 py-0.5 bg-surface-3 rounded text-gray-400 text-[10px] font-mono">
+          <kbd className="px-1 py-0.5 bg-surface-3 rounded text-secondary text-[10px] font-mono">
             Cmd+K
           </kbd>{" "}
           to quickly switch between spaces and channels.
@@ -33,7 +33,7 @@ export function WelcomeBanner({ onDismiss }: WelcomeBannerProps) {
 
       <button
         onClick={onDismiss}
-        className="p-1 text-gray-500 hover:text-gray-300 hover:bg-surface-3 rounded transition-colors flex-shrink-0"
+        className="p-1 text-muted hover:text-secondary hover:bg-surface-3 rounded transition-colors flex-shrink-0"
         title="Dismiss"
       >
         <svg

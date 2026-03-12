@@ -1,7 +1,7 @@
 import { EventTypes } from "@openclaw/protocol";
 import type { AnyUIComponent } from "@openclaw/protocol";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import React, { useState, useRef, useSyncExternalStore } from "react";
+import React, { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { AgentUIRenderer } from "./AgentUIRenderer";
 import { useMatrix } from "~/lib/matrix-context";
 
@@ -12,10 +12,39 @@ interface ThreadPanelProps {
 }
 
 export function ThreadPanel({ roomId, threadRootId, onClose }: ThreadPanelProps) {
-  const { client, eventStore } = useMatrix();
+  const { client, eventStore, unreadTracker } = useMatrix();
   const [input, setInput] = useState("");
   const parentRef = useRef<HTMLDivElement>(null);
   const _room = client.getRoom(roomId);
+
+  // Mark thread as read when opening and when new messages arrive
+  useEffect(() => {
+    unreadTracker.markThreadAsRead(roomId, threadRootId);
+
+    // Send a threaded read receipt to the server
+    const room = client.getRoom(roomId);
+    if (room) {
+      const timeline = room.getLiveTimeline().getEvents();
+      // Find the last event in this thread
+      const threadEvents = timeline.filter((ev) => {
+        const content = ev.getContent();
+        const relation = content["m.relates_to"] as
+          | { rel_type?: string; event_id?: string }
+          | undefined;
+        return (
+          ev.getId() === threadRootId ||
+          (relation?.rel_type === "m.thread" && relation.event_id === threadRootId)
+        );
+      });
+      const lastThreadEvent = threadEvents[threadEvents.length - 1];
+      if (lastThreadEvent) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (client as any).sendReadReceipt(lastThreadEvent, "m.read", false).catch((err: unknown) => {
+          console.warn("[ThreadPanel] Failed to send threaded read receipt:", err);
+        });
+      }
+    }
+  }, [roomId, threadRootId, client, unreadTracker]);
 
   const messages = useSyncExternalStore(eventStore.subscribe, () =>
     eventStore.getThreadMessages(roomId, threadRootId),
@@ -59,10 +88,10 @@ export function ThreadPanel({ roomId, threadRootId, onClose }: ThreadPanelProps)
     <div className="w-96 flex-shrink-0 border-l border-border flex flex-col bg-surface-0">
       {/* Header */}
       <div className="h-14 flex items-center justify-between px-4 border-b border-border flex-shrink-0">
-        <h3 className="text-sm font-semibold text-white">Thread</h3>
+        <h3 className="text-sm font-semibold text-primary">Thread</h3>
         <button
           onClick={onClose}
-          className="p-1 text-gray-500 hover:text-gray-300 hover:bg-surface-3 rounded transition-colors"
+          className="p-1 text-muted hover:text-secondary hover:bg-surface-3 rounded transition-colors"
         >
           <svg
             className="w-4 h-4"
@@ -104,7 +133,7 @@ export function ThreadPanel({ roomId, threadRootId, onClose }: ThreadPanelProps)
                   <div className="flex items-start gap-2.5">
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        msg.isAgent ? "bg-accent/20 text-accent" : "bg-surface-3 text-gray-400"
+                        msg.isAgent ? "bg-accent/20 text-accent" : "bg-surface-3 text-secondary"
                       }`}
                     >
                       <span className="text-[10px] font-medium">
@@ -116,12 +145,12 @@ export function ThreadPanel({ roomId, threadRootId, onClose }: ThreadPanelProps)
                       <div className="flex items-baseline gap-2 mb-0.5">
                         <span
                           className={`text-xs font-medium ${
-                            msg.isAgent ? "text-accent" : "text-white"
+                            msg.isAgent ? "text-accent" : "text-primary"
                           }`}
                         >
                           {msg.senderName}
                         </span>
-                        <span className="text-[10px] text-gray-600">
+                        <span className="text-[10px] text-faint">
                           {new Date(msg.timestamp).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -130,7 +159,7 @@ export function ThreadPanel({ roomId, threadRootId, onClose }: ThreadPanelProps)
                       </div>
 
                       {msg.type === "m.room.message" && (
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap">
+                        <p className="text-sm text-secondary whitespace-pre-wrap">
                           {msg.content.body as string}
                         </p>
                       )}
@@ -157,7 +186,7 @@ export function ThreadPanel({ roomId, threadRootId, onClose }: ThreadPanelProps)
                   </div>
 
                   {msg.isRoot && messages.length > 1 && (
-                    <p className="text-[10px] text-gray-500 mt-2 ml-9">
+                    <p className="text-[10px] text-muted mt-2 ml-9">
                       {messages.length - 1} {messages.length === 2 ? "reply" : "replies"}
                     </p>
                   )}
@@ -177,12 +206,12 @@ export function ThreadPanel({ roomId, threadRootId, onClose }: ThreadPanelProps)
             onKeyDown={handleKeyDown}
             placeholder="Reply in thread..."
             rows={1}
-            className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none focus:outline-none"
+            className="flex-1 bg-transparent text-sm text-primary placeholder-muted resize-none focus:outline-none"
           />
           <button
             onClick={sendReply}
             disabled={!input.trim()}
-            className="px-3 py-1.5 bg-accent hover:bg-accent-hover disabled:opacity-30 text-white text-xs font-medium rounded-lg transition-colors"
+            className="px-3 py-1.5 bg-accent hover:bg-accent-hover disabled:opacity-30 text-inverse text-xs font-medium rounded-lg transition-colors"
           >
             Reply
           </button>

@@ -11,6 +11,7 @@ export function App() {
     homeserverUrl: string;
     userId: string;
     accessToken: string;
+    isGuest?: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,11 +39,17 @@ export function App() {
     });
   }, []);
 
-  const handleLogin = useCallback((homeserverUrl: string, userId: string, accessToken: string) => {
-    const s = { homeserverUrl, userId, accessToken };
-    setSession(s);
-    persistence.saveSession(s);
-  }, []);
+  const handleLogin = useCallback(
+    (homeserverUrl: string, userId: string, accessToken: string, isGuest?: boolean) => {
+      const s = { homeserverUrl, userId, accessToken, isGuest };
+      setSession(s);
+      // Don't persist guest sessions
+      if (!isGuest) {
+        persistence.saveSession(s);
+      }
+    },
+    [],
+  );
 
   const handleLogout = useCallback(() => {
     setSession(null);
@@ -68,6 +75,19 @@ export function App() {
       accessToken={session.accessToken}
       onLogout={handleLogout}
     >
+      {session.isGuest && (
+        <div className="bg-accent/20 border-b border-accent/30 px-4 py-2 text-center">
+          <p className="text-sm text-accent">
+            You are browsing as a guest.{" "}
+            <button
+              onClick={handleLogout}
+              className="underline hover:text-primary transition-colors font-medium"
+            >
+              Sign up to participate.
+            </button>
+          </p>
+        </div>
+      )}
       <AgentOS />
     </MatrixProvider>
   );

@@ -72,7 +72,7 @@ export function ViewModeToggle({ mode, onChange }: ViewModeToggleProps) {
           onClick={() => onChange(value)}
           title={label}
           className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-            mode === value ? "bg-surface-3 text-white" : "text-gray-500 hover:text-gray-300"
+            mode === value ? "bg-surface-3 text-primary" : "text-muted hover:text-secondary"
           }`}
         >
           {icon}

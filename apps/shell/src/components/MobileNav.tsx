@@ -11,7 +11,7 @@ export function MobileNav({ onShowSpaces, onShowSearch, onShowSettings }: Mobile
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-1 border-t border-border flex items-center justify-around py-2 z-40">
       <button
         onClick={onShowSpaces}
-        className="flex flex-col items-center gap-0.5 px-4 py-1 text-gray-400 hover:text-white transition-colors"
+        className="flex flex-col items-center gap-0.5 px-4 py-1 text-secondary hover:text-primary transition-colors"
       >
         <svg
           className="w-5 h-5"
@@ -31,7 +31,7 @@ export function MobileNav({ onShowSpaces, onShowSearch, onShowSettings }: Mobile
 
       <button
         onClick={onShowSearch}
-        className="flex flex-col items-center gap-0.5 px-4 py-1 text-gray-400 hover:text-white transition-colors"
+        className="flex flex-col items-center gap-0.5 px-4 py-1 text-secondary hover:text-primary transition-colors"
       >
         <svg
           className="w-5 h-5"
@@ -51,7 +51,7 @@ export function MobileNav({ onShowSpaces, onShowSearch, onShowSettings }: Mobile
 
       <button
         onClick={onShowSettings}
-        className="flex flex-col items-center gap-0.5 px-4 py-1 text-gray-400 hover:text-white transition-colors"
+        className="flex flex-col items-center gap-0.5 px-4 py-1 text-secondary hover:text-primary transition-colors"
       >
         <svg
           className="w-5 h-5"

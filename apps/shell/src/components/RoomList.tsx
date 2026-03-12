@@ -27,8 +27,8 @@ export function RoomList({ selectedRoomId, onSelectRoom }: RoomListProps) {
             onClick={() => onSelectRoom(room.roomId)}
             className={`w-full px-3 py-2 flex items-center gap-3 text-left transition-colors ${
               isSelected
-                ? "bg-surface-3 text-white"
-                : "text-gray-400 hover:bg-surface-2 hover:text-gray-200"
+                ? "bg-surface-3 text-primary"
+                : "text-secondary hover:bg-surface-2 hover:text-primary"
             }`}
           >
             <div className="w-8 h-8 rounded-lg bg-surface-4 flex items-center justify-center flex-shrink-0">
@@ -36,14 +36,14 @@ export function RoomList({ selectedRoomId, onSelectRoom }: RoomListProps) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate">{name}</p>
-              <p className="text-xs text-gray-500">{memberCount} members</p>
+              <p className="text-xs text-muted">{memberCount} members</p>
             </div>
           </button>
         );
       })}
 
       {rooms.length === 0 && (
-        <p className="px-4 py-8 text-sm text-gray-500 text-center">No rooms yet</p>
+        <p className="px-4 py-8 text-sm text-muted text-center">No rooms yet</p>
       )}
     </div>
   );

@@ -11,6 +11,10 @@ export interface TimelineMessage {
   timestamp: number;
   isAgent: boolean;
   replyCount: number;
+  edited?: boolean;
+  redacted?: boolean;
+  pending?: boolean;
+  failed?: boolean;
 }
 
 export interface ThreadMessage {
@@ -22,10 +26,22 @@ export interface ThreadMessage {
   timestamp: number;
   isAgent: boolean;
   isRoot: boolean;
+  edited?: boolean;
+  redacted?: boolean;
+}
+
+export interface ThreadSummary {
+  rootMessage: TimelineMessage;
+  replyCount: number;
+  lastReply: ThreadMessage | undefined;
+  latestActivity: number;
 }
 
 const RELEVANT_TYPES = new Set([
   "m.room.message",
+  "m.room.tombstone",
+  "m.sticker",
+  "m.reaction",
   EventTypes.UI,
   EventTypes.Task,
   EventTypes.Status,
@@ -60,6 +76,12 @@ export class EventStore {
 
   /** event IDs we've already processed (dedup) */
   private seenIds = new Set<string>();
+
+  /** Reactions: target_event_id -> emoji_key -> Set<sender_id> */
+  private reactions = new Map<string, Map<string, Set<string>>>();
+
+  /** temp_id -> roomId for local echo tracking */
+  private localEchoRoomMap = new Map<string, string>();
 
   /** monotonic version counter – bumped on every change */
   private version = 0;
@@ -128,10 +150,85 @@ export class EventStore {
     const timestamp = event.getTs();
     const isAgent = this.agentRegistry?.isAgent(sender) ?? false;
 
-    // Check if this is a thread reply
+    // Handle reaction events
+    if (type === "m.reaction") {
+      const relation = content?.["m.relates_to"] as
+        | { rel_type?: string; event_id?: string; key?: string }
+        | undefined;
+
+      if (relation?.rel_type === "m.annotation" && relation.event_id && relation.key) {
+        const targetId = relation.event_id;
+        const key = relation.key;
+
+        let emojiMap = this.reactions.get(targetId);
+        if (!emojiMap) {
+          emojiMap = new Map();
+          this.reactions.set(targetId, emojiMap);
+        }
+
+        let senders = emojiMap.get(key);
+        if (!senders) {
+          senders = new Set();
+          emojiMap.set(key, senders);
+        }
+
+        if (senders.has(sender)) {
+          // Already reacted with same emoji — no change
+          return false;
+        }
+
+        senders.add(sender);
+        return true;
+      }
+
+      return false;
+    }
+
+    // Check for message edit (replacement) or thread reply
     const relation = content?.["m.relates_to"] as
       | { rel_type?: string; event_id?: string }
       | undefined;
+
+    if (relation?.rel_type === "m.replace" && relation.event_id) {
+      const targetId = relation.event_id;
+      const newContent = content["m.new_content"] as Record<string, unknown> | undefined;
+
+      if (newContent) {
+        let found = false;
+
+        // Update in eventMap (main timeline messages)
+        const targetMsg = this.eventMap.get(targetId);
+        if (targetMsg) {
+          targetMsg.content = newContent;
+          targetMsg.edited = true;
+          found = true;
+
+          // Re-create the room messages array reference for the room that contains this message
+          for (const [rid, msgs] of this.roomMessages.entries()) {
+            if (msgs.some((m) => m.id === targetId)) {
+              this.roomMessages.set(rid, [...msgs]);
+              break;
+            }
+          }
+        }
+
+        // Update in thread replies
+        for (const [rootId, replies] of this.threadReplies.entries()) {
+          const targetReply = replies.find((r) => r.id === targetId);
+          if (targetReply) {
+            targetReply.content = newContent;
+            targetReply.edited = true;
+            this.threadReplies.set(rootId, [...replies]);
+            found = true;
+            break;
+          }
+        }
+
+        return found;
+      }
+
+      return false;
+    }
 
     if (relation?.rel_type === "m.thread" && relation.event_id) {
       const rootId = relation.event_id;
@@ -207,6 +304,11 @@ export class EventStore {
     return this.roomMessages.get(roomId) ?? EMPTY_MESSAGES;
   };
 
+  /** Get reactions grouped by emoji key for a given event */
+  getReactionsForEvent = (eventId: string): Map<string, Set<string>> => {
+    return this.reactions.get(eventId) ?? EMPTY_REACTIONS;
+  };
+
   /** Get thread messages including the root */
   getThreadMessages = (roomId: string, threadRootId: string): ThreadMessage[] => {
     const rootMsg = this.eventMap.get(threadRootId);
@@ -223,10 +325,179 @@ export class EventStore {
       timestamp: rootMsg.timestamp,
       isAgent: rootMsg.isAgent,
       isRoot: true,
+      edited: rootMsg.edited,
+      redacted: rootMsg.redacted,
     };
 
     return [rootThread, ...replies];
   };
+
+  /** Look up a message by event ID */
+  getMessageById = (eventId: string): TimelineMessage | undefined => {
+    return this.eventMap.get(eventId);
+  };
+
+  /** Get all thread summaries for a given room, sorted by latest activity (newest first). */
+  getThreadSummaries = (roomId: string): ThreadSummary[] => {
+    const messages = this.roomMessages.get(roomId);
+    if (!messages) return EMPTY_THREAD_SUMMARIES;
+
+    const summaries: ThreadSummary[] = [];
+
+    for (const msg of messages) {
+      if (msg.replyCount <= 0) continue;
+
+      const replies = this.threadReplies.get(msg.id) ?? [];
+      const lastReply = replies.length > 0 ? replies[replies.length - 1] : undefined;
+      const latestActivity = lastReply ? lastReply.timestamp : msg.timestamp;
+
+      summaries.push({
+        rootMessage: msg,
+        replyCount: msg.replyCount,
+        lastReply,
+        latestActivity,
+      });
+    }
+
+    // Sort by latest activity, newest first
+    summaries.sort((a, b) => b.latestActivity - a.latestActivity);
+
+    return summaries;
+  };
+
+  /** Redact a message — mark it as deleted and clear its content */
+  redactMessage(eventId: string): void {
+    // Check main timeline messages
+    const targetMsg = this.eventMap.get(eventId);
+    if (targetMsg) {
+      targetMsg.redacted = true;
+      targetMsg.content = {};
+
+      // Re-create the room messages array reference
+      for (const [rid, msgs] of this.roomMessages.entries()) {
+        if (msgs.some((m) => m.id === eventId)) {
+          this.roomMessages.set(rid, [...msgs]);
+          break;
+        }
+      }
+
+      this.notify();
+      return;
+    }
+
+    // Check thread replies
+    for (const [rootId, replies] of this.threadReplies.entries()) {
+      const targetReply = replies.find((r) => r.id === eventId);
+      if (targetReply) {
+        targetReply.redacted = true;
+        targetReply.content = {};
+        this.threadReplies.set(rootId, [...replies]);
+        this.notify();
+        return;
+      }
+    }
+  }
+
+  /** Add a local echo (optimistic) message to a room */
+  addLocalEcho(
+    roomId: string,
+    tempId: string,
+    sender: string,
+    senderName: string,
+    content: Record<string, unknown>,
+    timestamp: number,
+  ): void {
+    const msg: TimelineMessage = {
+      id: tempId,
+      sender,
+      senderName,
+      type: "m.room.message",
+      content,
+      timestamp,
+      isAgent: false,
+      replyCount: 0,
+      pending: true,
+    };
+
+    this.localEchoRoomMap.set(tempId, roomId);
+    this.eventMap.set(tempId, msg);
+    // Mark tempId as seen so processEventInternal won't duplicate
+    // (real event will use a different ID and go through resolveLocalEcho)
+    this.seenIds.add(tempId);
+
+    let msgs = this.roomMessages.get(roomId);
+    if (!msgs) {
+      msgs = [];
+      this.roomMessages.set(roomId, msgs);
+    }
+    this.roomMessages.set(roomId, [...msgs, msg]);
+    this.notify();
+  }
+
+  /** Replace a local echo with the real event once sync delivers it */
+  resolveLocalEcho(tempId: string, realEventId: string): void {
+    const roomId = this.localEchoRoomMap.get(tempId);
+    if (!roomId) return;
+
+    const msgs = this.roomMessages.get(roomId);
+    if (!msgs) return;
+
+    const idx = msgs.findIndex((m) => m.id === tempId);
+    if (idx === -1) return;
+
+    const resolved: TimelineMessage = { ...msgs[idx], id: realEventId, pending: false };
+    const newMsgs = [...msgs];
+    newMsgs[idx] = resolved;
+    this.roomMessages.set(roomId, newMsgs);
+
+    this.eventMap.delete(tempId);
+    this.eventMap.set(realEventId, resolved);
+    this.seenIds.add(realEventId);
+    this.localEchoRoomMap.delete(tempId);
+
+    this.notify();
+  }
+
+  /** Mark a local echo as failed */
+  failLocalEcho(tempId: string): void {
+    const roomId = this.localEchoRoomMap.get(tempId);
+    if (!roomId) return;
+
+    const msgs = this.roomMessages.get(roomId);
+    if (!msgs) return;
+
+    const idx = msgs.findIndex((m) => m.id === tempId);
+    if (idx === -1) return;
+
+    const failed: TimelineMessage = { ...msgs[idx], pending: false, failed: true };
+    const newMsgs = [...msgs];
+    newMsgs[idx] = failed;
+    this.roomMessages.set(roomId, newMsgs);
+
+    this.eventMap.set(tempId, failed);
+    this.notify();
+  }
+
+  /** Remove a local echo entirely (used when retrying a failed message) */
+  removeLocalEcho(tempId: string): void {
+    const roomId = this.localEchoRoomMap.get(tempId);
+    if (!roomId) return;
+
+    const msgs = this.roomMessages.get(roomId);
+    if (!msgs) return;
+
+    this.roomMessages.set(
+      roomId,
+      msgs.filter((m) => m.id !== tempId),
+    );
+    this.eventMap.delete(tempId);
+    this.seenIds.delete(tempId);
+    this.localEchoRoomMap.delete(tempId);
+
+    this.notify();
+  }
 }
 
 const EMPTY_MESSAGES: TimelineMessage[] = [];
+const EMPTY_REACTIONS: Map<string, Set<string>> = new Map();
+const EMPTY_THREAD_SUMMARIES: ThreadSummary[] = [];

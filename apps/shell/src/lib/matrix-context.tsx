@@ -1,13 +1,22 @@
 import * as sdk from "matrix-js-sdk";
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { AgentRegistry } from "./agent-registry";
+import { DMTracker } from "./dm-tracker";
 import { EventStore } from "./event-store";
+import { NotificationManager } from "./notifications";
 import { createPersistenceAdapter, type PersistenceAdapter } from "./persistence";
+import { PresenceTracker } from "./presence-tracker";
+import { UnreadTracker } from "./unread-tracker";
 
 interface MatrixContextValue {
   client: sdk.MatrixClient;
+  homeserverUrl: string;
   eventStore: EventStore;
   agentRegistry: AgentRegistry;
+  dmTracker: DMTracker;
+  unreadTracker: UnreadTracker;
+  notificationManager: NotificationManager;
+  presenceTracker: PresenceTracker;
   ready: boolean;
   logout: () => void;
 }
@@ -53,16 +62,29 @@ export function MatrixProvider({
   const [client, setClient] = useState<sdk.MatrixClient | null>(null);
   const eventStoreRef = useRef<EventStore>(new EventStore());
   const agentRegistryRef = useRef<AgentRegistry>(new AgentRegistry());
+  const dmTrackerRef = useRef<DMTracker>(new DMTracker());
+  const unreadTrackerRef = useRef<UnreadTracker>(new UnreadTracker());
+  const notificationManagerRef = useRef<NotificationManager>(new NotificationManager());
+  const presenceTrackerRef = useRef<PresenceTracker>(new PresenceTracker());
   const persistenceRef = useRef<PersistenceAdapter>(createPersistenceAdapter());
 
   useEffect(() => {
     const c = createMatrixClient(homeserverUrl, userId, accessToken);
     const eventStore = eventStoreRef.current;
     const agentRegistry = agentRegistryRef.current;
+    const dmTracker = dmTrackerRef.current;
+    const unreadTracker = unreadTrackerRef.current;
+    const notificationManager = notificationManagerRef.current;
+    const presenceTracker = presenceTrackerRef.current;
     const persistence = persistenceRef.current;
 
     // Wire registry into event store for isAgent resolution
     eventStore.setAgentRegistry(agentRegistry);
+
+    // Wire the Matrix client into the unread tracker, notification manager, and presence tracker
+    unreadTracker.setClient(c);
+    notificationManager.setClient(c);
+    presenceTracker.startTracking(c);
 
     setClient(c);
     setReady(false);
@@ -75,6 +97,8 @@ export function MatrixProvider({
         eventStore.loadRoom(room);
         agentRegistry.loadRoom(room);
       }
+      dmTracker.loadFromClient(c);
+      unreadTracker.refreshCounts();
     };
 
     let isReady = false;
@@ -105,6 +129,29 @@ export function MatrixProvider({
 
     c.on(sdk.ClientEvent.Sync, onSync);
 
+    // Listen for new timeline events to trigger desktop notifications
+    // and track thread unread counts.
+    const onTimelineEvent = (event: sdk.MatrixEvent, room: sdk.Room | undefined) => {
+      notificationManager.handleTimelineEvent(event, room ?? null);
+
+      // Track thread unread counts for thread reply events
+      if (room) {
+        const content = event.getContent();
+        const relation = content["m.relates_to"] as
+          | { rel_type?: string; event_id?: string }
+          | undefined;
+        if (relation?.rel_type === "m.thread" && relation.event_id) {
+          const sender = event.getSender();
+          const myUserId = c.getUserId();
+          // Don't count own messages as unread
+          if (sender && sender !== myUserId) {
+            unreadTracker.incrementThreadUnread(room.roomId, relation.event_id);
+          }
+        }
+      }
+    };
+    c.on(sdk.RoomEvent.Timeline, onTimelineEvent);
+
     c.startClient({
       initialSyncLimit: 50,
       lazyLoadMembers: true,
@@ -116,6 +163,8 @@ export function MatrixProvider({
 
     return () => {
       c.removeListener(sdk.ClientEvent.Sync, onSync);
+      c.removeListener(sdk.RoomEvent.Timeline, onTimelineEvent);
+      presenceTracker.stopTracking();
       clearInterval(pollInterval);
       c.stopClient();
     };
@@ -138,8 +187,13 @@ export function MatrixProvider({
     <MatrixContext.Provider
       value={{
         client,
+        homeserverUrl,
         eventStore: eventStoreRef.current,
         agentRegistry: agentRegistryRef.current,
+        dmTracker: dmTrackerRef.current,
+        unreadTracker: unreadTrackerRef.current,
+        notificationManager: notificationManagerRef.current,
+        presenceTracker: presenceTrackerRef.current,
         ready,
         logout,
       }}

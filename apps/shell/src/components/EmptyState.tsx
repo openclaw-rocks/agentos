@@ -13,7 +13,7 @@ export function EmptyState({ spaceName, suggestions = DEFAULT_SUGGESTIONS }: Emp
       <div className="text-center max-w-sm">
         <div className="w-14 h-14 rounded-2xl bg-surface-2 flex items-center justify-center mx-auto mb-4">
           <svg
-            className="w-7 h-7 text-gray-500"
+            className="w-7 h-7 text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -27,10 +27,10 @@ export function EmptyState({ spaceName, suggestions = DEFAULT_SUGGESTIONS }: Emp
           </svg>
         </div>
 
-        <h3 className="text-base font-semibold text-white mb-1">
+        <h3 className="text-base font-semibold text-primary mb-1">
           {spaceName ? `Welcome to ${spaceName}` : "No messages yet"}
         </h3>
-        <p className="text-sm text-gray-500 mb-5">
+        <p className="text-sm text-muted mb-5">
           Start a conversation or try one of the suggestions below.
         </p>
 
@@ -38,7 +38,7 @@ export function EmptyState({ spaceName, suggestions = DEFAULT_SUGGESTIONS }: Emp
           {suggestions.map((suggestion) => (
             <div
               key={suggestion}
-              className="px-4 py-2.5 bg-surface-1 border border-border rounded-xl text-sm text-gray-400 hover:text-gray-200 hover:bg-surface-2 transition-colors cursor-default"
+              className="px-4 py-2.5 bg-surface-1 border border-border rounded-xl text-sm text-secondary hover:text-primary hover:bg-surface-2 transition-colors cursor-default"
             >
               {suggestion}
             </div>

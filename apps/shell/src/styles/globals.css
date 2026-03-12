@@ -3,67 +3,122 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light mode — default */
   :root {
-    /* Surface */
-    --color-surface-0: 10 10 15;
-    --color-surface-1: 18 18 26;
-    --color-surface-2: 26 26 36;
-    --color-surface-3: 34 34 46;
-    --color-surface-4: 42 42 56;
+    /* Surface — white and light gray */
+    --color-surface-0: 245 245 247;
+    --color-surface-1: 255 255 255;
+    --color-surface-2: 236 236 240;
+    --color-surface-3: 229 229 234;
+    --color-surface-4: 216 216 220;
 
-    /* Accent */
-    --color-accent: 99 102 241;
-    --color-accent-hover: 129 140 248;
-    --color-accent-muted: 79 70 229;
+    /* Accent — Apple system blue */
+    --color-accent: 0 113 227;
+    --color-accent-hover: 0 95 200;
+    --color-accent-muted: 0 113 227;
 
-    /* Status */
-    --color-status-success: 34 197 94;
-    --color-status-warning: 234 179 8;
-    --color-status-error: 239 68 68;
-    --color-status-info: 59 130 246;
-    --color-status-pending: 168 85 247;
+    /* Status — Apple system colors */
+    --color-status-success: 52 199 89;
+    --color-status-warning: 255 159 10;
+    --color-status-error: 255 59 48;
+    --color-status-info: 0 122 255;
+    --color-status-pending: 175 82 222;
 
     /* Border */
-    --color-border: 42 42 56;
-    --color-border-focus: 99 102 241;
+    --color-border: 209 209 214;
+    --color-border-focus: 0 113 227;
 
     /* Text */
-    --color-text-primary: 255 255 255;
-    --color-text-secondary: 209 213 219;
-    --color-text-muted: 107 114 128;
+    --color-text-primary: 29 29 31;
+    --color-text-secondary: 60 60 67;
+    --color-text-muted: 142 142 147;
+    --color-text-faint: 174 174 178;
+    --color-text-inverse: 255 255 255;
+    --color-placeholder: 174 174 178;
 
-    color-scheme: dark;
-  }
-
-  .theme-light {
-    --color-surface-0: 255 255 255;
-    --color-surface-1: 249 250 251;
-    --color-surface-2: 243 244 246;
-    --color-surface-3: 229 231 235;
-    --color-surface-4: 209 213 219;
-
-    --color-accent: 79 70 229;
-    --color-accent-hover: 67 56 202;
-    --color-accent-muted: 99 102 241;
-
-    --color-status-success: 22 163 74;
-    --color-status-warning: 202 138 4;
-    --color-status-error: 220 38 38;
-    --color-status-info: 37 99 235;
-    --color-status-pending: 147 51 234;
-
-    --color-border: 229 231 235;
-    --color-border-focus: 79 70 229;
-
-    --color-text-primary: 17 24 39;
-    --color-text-secondary: 55 65 81;
-    --color-text-muted: 156 163 175;
+    /* Siri spectrum (available for agent accents) */
+    --siri-teal: 0 180 145;
+    --siri-pink: 220 40 100;
+    --siri-purple: 100 40 200;
+    --siri-blue: 30 100 220;
+    --siri-orange: 200 110 30;
 
     color-scheme: light;
   }
 
-  /* Light mode auto-detection disabled — app text colors aren't fully themed yet.
-     Light mode is available via .theme-light class on <html> for future use. */
+  /* Dark mode */
+  .dark {
+    --color-surface-0: 0 0 0;
+    --color-surface-1: 28 28 30;
+    --color-surface-2: 44 44 46;
+    --color-surface-3: 58 58 60;
+    --color-surface-4: 72 72 74;
+
+    --color-accent: 10 132 255;
+    --color-accent-hover: 50 160 255;
+    --color-accent-muted: 10 132 255;
+
+    --color-status-success: 48 209 88;
+    --color-status-warning: 255 159 10;
+    --color-status-error: 255 69 58;
+    --color-status-info: 10 132 255;
+    --color-status-pending: 191 90 242;
+
+    --color-border: 56 56 58;
+    --color-border-focus: 10 132 255;
+
+    --color-text-primary: 255 255 255;
+    --color-text-secondary: 174 174 178;
+    --color-text-muted: 142 142 147;
+    --color-text-faint: 99 99 102;
+    --color-text-inverse: 0 0 0;
+    --color-placeholder: 99 99 102;
+
+    --siri-teal: 0 224 180;
+    --siri-pink: 255 45 120;
+    --siri-purple: 140 60 255;
+    --siri-blue: 40 120 255;
+    --siri-orange: 236 136 45;
+
+    color-scheme: dark;
+  }
+
+  /* High contrast */
+  .high-contrast {
+    --color-surface-0: 0 0 0;
+    --color-surface-1: 10 10 10;
+    --color-surface-2: 20 20 20;
+    --color-surface-3: 35 35 35;
+    --color-surface-4: 55 55 55;
+
+    --color-accent: 0 255 200;
+    --color-accent-hover: 50 255 220;
+    --color-accent-muted: 0 200 160;
+
+    --color-status-success: 0 255 0;
+    --color-status-warning: 255 255 0;
+    --color-status-error: 255 50 50;
+    --color-status-info: 80 160 255;
+    --color-status-pending: 200 100 255;
+
+    --color-border: 100 100 100;
+    --color-border-focus: 0 255 200;
+
+    --color-text-primary: 255 255 255;
+    --color-text-secondary: 220 220 220;
+    --color-text-muted: 170 170 170;
+    --color-text-faint: 130 130 130;
+    --color-text-inverse: 0 0 0;
+    --color-placeholder: 170 170 170;
+
+    --siri-teal: 0 255 200;
+    --siri-pink: 255 80 150;
+    --siri-purple: 180 100 255;
+    --siri-blue: 80 160 255;
+    --siri-orange: 255 170 60;
+
+    color-scheme: dark;
+  }
 
   * {
     @apply border-border;
@@ -83,6 +138,343 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-600;
+    @apply bg-surface-3;
   }
+}
+
+@layer components {
+  /* ---- Frosted glass ---- */
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(1.8);
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .dark .glass {
+    background: rgba(28, 28, 30, 0.72);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* ---- Input ---- */
+  .glass-input {
+    @apply rounded-[10px] px-3.5 py-2.5 text-[15px];
+    color: rgb(var(--color-text-primary));
+    background: rgb(var(--color-surface-2) / 0.5);
+    border: 1px solid rgb(var(--color-border) / 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 0 0 0px rgb(var(--siri-purple) / 0);
+    transition: border-color 200ms ease,
+                box-shadow 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                background-color 200ms ease;
+  }
+  .glass-input::placeholder {
+    color: rgb(var(--color-placeholder));
+    transition: color 200ms ease;
+  }
+  .glass-input:focus {
+    outline: none;
+    border-color: rgb(var(--siri-purple) / 0.5);
+    background: rgb(var(--color-surface-2) / 0.3);
+    box-shadow: 0 0 0 3px rgb(var(--siri-purple) / 0.1),
+                0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+  .glass-input:focus::placeholder {
+    color: rgb(var(--color-placeholder) / 0.5);
+  }
+
+  /* ---- Siri gradient text ---- */
+  .siri-text {
+    background: linear-gradient(
+      90deg,
+      rgb(var(--siri-blue)),
+      rgb(var(--siri-purple)),
+      rgb(var(--siri-pink)),
+      rgb(var(--siri-orange))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ---- Primary button ---- */
+  .btn-primary {
+    @apply w-full py-3 text-[15px] font-semibold rounded-xl;
+    background: linear-gradient(
+      135deg,
+      rgb(var(--siri-blue)),
+      rgb(var(--siri-purple)),
+      rgb(var(--siri-pink))
+    );
+    color: #fff;
+    background-size: 200% 200%;
+    background-position: 0% 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1),
+                0 0 0 0px rgb(var(--siri-purple) / 0);
+    /* Leisurely return — slow release feels physical */
+    transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1),
+                box-shadow 600ms cubic-bezier(0.3, 0.7, 0.4, 1),
+                background-position 500ms ease,
+                filter 200ms ease;
+  }
+  .btn-primary:hover {
+    background-position: 100% 50%;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgb(var(--siri-purple) / 0.3),
+                0 1px 3px rgba(0, 0, 0, 0.1);
+    /* Faster snap into hover */
+    transition: transform 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                box-shadow 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                background-position 500ms ease,
+                filter 200ms ease;
+  }
+  .btn-primary:active {
+    transform: translateY(1px) scale(0.97);
+    box-shadow: 0 1px 4px rgb(var(--siri-purple) / 0.2);
+    filter: brightness(0.92);
+    /* Near-instant press — 2 frames */
+    transition: transform 34ms,
+                box-shadow 34ms,
+                filter 34ms;
+  }
+  .btn-primary:disabled {
+    @apply opacity-40;
+    filter: none;
+    transform: none;
+    box-shadow: none;
+    background-position: 0% 50%;
+    transition: none;
+  }
+
+  /* ---- Secondary button ---- */
+  .btn-secondary {
+    @apply w-full py-2.5 text-[15px] font-medium rounded-xl;
+    color: rgb(var(--color-text-primary));
+    background: transparent;
+    border: 1px solid rgb(var(--color-border));
+    transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1),
+                background-color 200ms ease,
+                border-color 200ms ease,
+                box-shadow 200ms ease;
+  }
+  .btn-secondary:hover {
+    background: rgb(var(--color-surface-2) / 0.6);
+    border-color: rgb(var(--color-border));
+    transform: translateY(-0.5px);
+    transition: transform 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                background-color 200ms ease,
+                border-color 200ms ease,
+                box-shadow 200ms ease;
+  }
+  .btn-secondary:active {
+    transform: translateY(0.5px) scale(0.98);
+    transition: transform 34ms;
+  }
+
+  /* ---- Login ambient background ---- */
+  .login-bg {
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 20%, rgb(var(--siri-blue) / 0.06), transparent),
+      radial-gradient(ellipse 50% 60% at 70% 80%, rgb(var(--siri-purple) / 0.06), transparent),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgb(var(--siri-pink) / 0.04), transparent),
+      rgb(var(--color-surface-0));
+  }
+  .dark .login-bg {
+    background:
+      radial-gradient(ellipse 60% 50% at 30% 20%, rgb(var(--siri-blue) / 0.08), transparent),
+      radial-gradient(ellipse 50% 60% at 70% 80%, rgb(var(--siri-purple) / 0.08), transparent),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgb(var(--siri-pink) / 0.05), transparent),
+      rgb(var(--color-surface-0));
+  }
+
+  /* ---- Glass sidebar ---- */
+  .glass-sidebar {
+    background: rgba(245, 245, 247, 0.85);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .dark .glass-sidebar {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  /* ---- Error banner ---- */
+  .error-banner {
+    @apply flex items-start gap-2.5 rounded-xl px-3.5 py-3 text-sm;
+    background: rgb(var(--color-status-error) / 0.08);
+    border: 1px solid rgb(var(--color-status-error) / 0.15);
+    color: rgb(var(--color-text-primary));
+    animation: error-enter 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  .error-banner .error-icon {
+    @apply flex-shrink-0 mt-0.5;
+    color: rgb(var(--color-status-error));
+  }
+  .error-banner .error-text {
+    @apply flex-1 leading-snug;
+  }
+
+  /* ---- Glass header ---- */
+  .glass-header {
+    background: rgba(245, 245, 247, 0.85);
+    backdrop-filter: blur(20px) saturate(1.6);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .dark .glass-header {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+}
+
+/* Tab content fade-in on switch */
+@keyframes tab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.tab-fade-in {
+  animation: tab-fade-in 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Smooth height expand/collapse using grid trick */
+.expand-section {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.expand-section.open {
+  grid-template-rows: 1fr;
+}
+.expand-section > div {
+  overflow: hidden;
+}
+/* Content inside fades in/out with the height */
+.expand-section > div > * {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  transition-delay: 0ms;
+}
+.expand-section.open > div > * {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 150ms;
+}
+/* Stagger children inside open section */
+.expand-section.open > div > *:nth-child(2) { transition-delay: 200ms; }
+.expand-section.open > div > *:nth-child(3) { transition-delay: 250ms; }
+.expand-section.open > div > *:nth-child(4) { transition-delay: 300ms; }
+
+/* Button text crossfade */
+@keyframes btn-text-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.btn-text-enter {
+  animation: btn-text-in 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation-delay: 100ms;
+  opacity: 0;
+}
+
+/* Card entrance animation */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.card-enter {
+  animation: card-enter 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* Sliding tab indicator */
+.tab-group {
+  position: relative;
+  isolation: isolate;
+}
+.tab-group-indicator {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  border-radius: 6px;
+  background: rgb(var(--color-surface-1));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0.5px 1px rgba(0, 0, 0, 0.05);
+  transition: transform 300ms cubic-bezier(0.34, 1.3, 0.64, 1);
+  z-index: 0;
+}
+.tab-group-indicator[data-index="1"] {
+  transform: translateX(100%);
+}
+.tab-btn {
+  position: relative;
+  z-index: 1;
+  transition: color 200ms ease;
+}
+.tab-btn:not(.active):hover {
+  color: rgb(var(--color-text-secondary));
+}
+
+/* Error banner entrance */
+@keyframes error-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animated typing dots */
+.typing-dots::after {
+  content: "...";
+  display: inline-block;
+  animation: typing-dots 1.4s steps(4, end) infinite;
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+@keyframes typing-dots {
+  0% { width: 0; }
+  100% { width: 1.2em; }
+}
+
+/* Font size variants */
+.font-small { font-size: 13px; }
+.font-large { font-size: 17px; }
+
+/* Compact mode */
+.compact .group { padding-top: 2px; padding-bottom: 2px; }
+.compact [data-compact-padding] { padding-top: 2px; padding-bottom: 2px; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .typing-dots::after { animation: none; width: auto; }
 }
