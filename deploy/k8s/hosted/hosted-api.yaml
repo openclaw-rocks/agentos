@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hosted-api
+  labels:
+    app.kubernetes.io/name: agentos
+    app.kubernetes.io/component: hosted-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: agentos
+      app.kubernetes.io/component: hosted-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: agentos
+        app.kubernetes.io/component: hosted-api
+    spec:
+      containers:
+        - name: hosted-api
+          image: ghcr.io/openclawrocks/hosted-api:latest
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: PORT
+              value: "3001"
+            - name: MATRIX_HOMESERVER_URL
+              value: "http://agentos-matrix:8008"
+            - name: MATRIX_SERVER_NAME
+              value: "matrix.openclaw.rocks"
+            - name: MATRIX_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hosted-api-secrets
+                  key: matrix-admin-token
+            - name: K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: hosted-api-secrets
+                  key: stripe-secret-key
+                  optional: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+      serviceAccountName: hosted-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hosted-api
+  labels:
+    app.kubernetes.io/name: agentos
+    app.kubernetes.io/component: hosted-api
+spec:
+  selector:
+    app.kubernetes.io/name: agentos
+    app.kubernetes.io/component: hosted-api
+  ports:
+    - port: 3001
+      targetPort: http
+      name: http
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: hosted-api
+  labels:
+    app.kubernetes.io/name: agentos
+    app.kubernetes.io/component: hosted-api
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: hosted-api
+rules:
+  - apiGroups: ["openclaw.rocks"]
+    resources: ["openclawagents"]
+    verbs: ["create", "get", "list", "watch", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: hosted-api
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: hosted-api
+subjects:
+  - kind: ServiceAccount
+    name: hosted-api

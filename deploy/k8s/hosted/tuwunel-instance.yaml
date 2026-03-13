@@ -1,0 +1,57 @@
+apiVersion: matrix.openclaw.rocks/v1alpha1
+kind: TuwunelInstance
+metadata:
+  name: agentos-matrix
+spec:
+  serverName: "matrix.openclaw.rocks"
+
+  image:
+    repository: ghcr.io/matrix-construct/tuwunel
+    tag: "latest"
+
+  storage:
+    database:
+      enabled: true
+      size: "50Gi"
+
+  federation:
+    enabled: true
+    wellKnown:
+      server: "matrix.openclaw.rocks:443"
+      client: "https://matrix.openclaw.rocks"
+
+  registration:
+    allowRegistration: true
+    registrationTokenSecretRef:
+      name: matrix-registration-token
+      key: token
+
+  security:
+    networkPolicy:
+      enabled: true
+      allowedIngressNamespaces:
+        - agentos
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+
+  observability:
+    serviceMonitor:
+      enabled: true
+      interval: "30s"
+    prometheusRules:
+      enabled: true
+
+  backup:
+    enabled: true
+    schedule: "0 3 * * *"
+    s3:
+      endpoint: "https://s3.eu-central-1.amazonaws.com"
+      bucket: "agentos-matrix-backups"
+      credentialsSecretRef:
+        name: s3-backup-credentials

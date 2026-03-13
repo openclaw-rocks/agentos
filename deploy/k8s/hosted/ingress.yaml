@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agentos
+  labels:
+    app.kubernetes.io/name: agentos
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - openclaw.rocks
+        - matrix.openclaw.rocks
+      secretName: agentos-tls
+  rules:
+    # Main app — shell + hosted API
+    - host: openclaw.rocks
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: hosted-api
+                port:
+                  number: 3001
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: shell
+                port:
+                  number: 80
+    # Matrix homeserver — client + federation
+    - host: matrix.openclaw.rocks
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: agentos-matrix
+                port:
+                  number: 8008

@@ -27,4 +27,5 @@
  *   {isHosted() ? <HostedOnboarding /> : <MatrixLoginScreen />}
  */
 
-export {};
+export { HostedAuth } from "./hosted-auth";
+export { SpaceWizard } from "./space-wizard";

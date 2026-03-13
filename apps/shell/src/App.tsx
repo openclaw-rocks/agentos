@@ -1,8 +1,12 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import { MatrixProvider } from "./lib/matrix-context";
 import { createPersistenceAdapter } from "./lib/persistence";
+import { isHosted } from "./lib/platform";
 import { AgentOS } from "./pages/AgentOS";
 import { LoginScreen } from "./pages/LoginScreen";
+
+// Lazy-load hosted-only auth component — tree-shaken in open-source builds
+const HostedAuth = lazy(() => import("./ee/hosted-auth").then((m) => ({ default: m.HostedAuth })));
 
 const persistence = createPersistenceAdapter();
 
@@ -65,6 +69,19 @@ export function App() {
   }
 
   if (!session) {
+    if (isHosted()) {
+      return (
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-surface-0">
+              <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            </div>
+          }
+        >
+          <HostedAuth onLogin={handleLogin} />
+        </Suspense>
+      );
+    }
     return <LoginScreen onLogin={handleLogin} />;
   }
 

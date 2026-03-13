@@ -1,0 +1,49 @@
+version: "3.8"
+
+# Docker Compose for running the hosted version locally.
+# Includes: Synapse (dev homeserver), hosted-api, and shell (hosted build).
+#
+# Usage:
+#   docker compose -f deploy/docker-compose.hosted.yaml up --build
+#
+# Prerequisites:
+#   Run `bash dev/setup.sh` first to provision Synapse + test users.
+
+services:
+  synapse:
+    image: matrixdotorg/synapse:latest
+    volumes:
+      - ../dev/synapse:/data
+    ports:
+      - "8008:8008"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8008/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  hosted-api:
+    build:
+      context: ../
+      dockerfile: deploy/docker/Dockerfile.hosted-api
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      MATRIX_HOMESERVER_URL: "http://synapse:8008"
+      MATRIX_SERVER_NAME: "localhost"
+      MATRIX_ADMIN_TOKEN: "${MATRIX_ADMIN_TOKEN}"
+      K8S_NAMESPACE: "agentos"
+      NODE_ENV: "development"
+    depends_on:
+      synapse:
+        condition: service_healthy
+
+  shell:
+    build:
+      context: ../
+      dockerfile: deploy/docker/Dockerfile.shell-hosted
+    ports:
+      - "8080:80"
+    depends_on:
+      - hosted-api

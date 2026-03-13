@@ -88,3 +88,41 @@ agentDefaults:
 
 # Agents are deployed as OpenClaw instances with the agentos-agent skill.
 # See skills/agentos-agent/README.md for configuration details.
+
+# Hosted API — only deployed for the hosted version (openclaw.rocks)
+hostedApi:
+  enabled: false
+  image:
+    repository: ghcr.io/openclawrocks/hosted-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 2
+  port: 3001
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    MATRIX_HOMESERVER_URL: http://synapse:8008
+    MATRIX_SERVER_NAME: openclaw.rocks
+    K8S_NAMESPACE: agentos
+  service:
+    type: ClusterIP
+    port: 3001
+
+# Tuwunel — production Matrix homeserver (replaces Synapse)
+# Managed by the tuwunel-operator. Set synapse.enabled=false when using this.
+tuwunel:
+  enabled: false
+  serverName: matrix.openclaw.rocks
+  storage:
+    size: 50Gi
+    storageClass: ""
+  federation:
+    enabled: true
+  registration:
+    allowRegistration: true
+    # registrationTokenSecret: agent-registration-token

@@ -1,0 +1,21 @@
+# Hosted API — handles auth, space provisioning, and operator wiring
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ packages/
+COPY apps/hosted-api/ apps/hosted-api/
+RUN corepack enable && pnpm install --frozen-lockfile
+RUN pnpm --filter @openclaw/hosted-api build
+
+FROM node:20-alpine
+WORKDIR /app
+RUN apk add --no-cache tini
+COPY --from=builder /app/node_modules node_modules
+COPY --from=builder /app/apps/hosted-api/dist apps/hosted-api/dist
+COPY --from=builder /app/apps/hosted-api/package.json apps/hosted-api/package.json
+
+ENV NODE_ENV=production
+EXPOSE 3001
+USER 1000:1000
+ENTRYPOINT ["tini", "--"]
+CMD ["node", "apps/hosted-api/dist/index.js"]

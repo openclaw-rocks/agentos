@@ -1,0 +1,15 @@
+# Shell — hosted version build (VITE_IS_HOSTED=true)
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ packages/
+COPY apps/shell/ apps/shell/
+RUN corepack enable && pnpm install --frozen-lockfile
+ENV VITE_IS_HOSTED=true
+ENV VITE_HOSTED_API_URL=/api
+RUN pnpm --filter @openclaw/shell build
+
+FROM nginx:alpine
+COPY --from=builder /app/apps/shell/dist /usr/share/nginx/html
+COPY deploy/nginx/hosted.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
