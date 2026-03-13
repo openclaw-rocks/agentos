@@ -115,7 +115,7 @@ AS_TOKEN="as_openclaw_$(openssl rand -hex 16)"
 HS_TOKEN="hs_openclaw_$(openssl rand -hex 16)"
 
 # Write AS registration without the exclusive namespace first,
-# so we can register the agent-echo user via normal registration.
+# so we can register agent users via normal registration.
 # We'll update it after user registration.
 cat > "$SYNAPSE_DIR/appservice-openclaw.yaml" <<YAML
 id: openclaw-agent-service
@@ -187,9 +187,6 @@ ADMIN_TOKEN=$(echo "$ADMIN_RESPONSE" | python3 -c "import sys,json; print(json.l
 USER1_RESPONSE=$(register_user "user1" "user123")
 USER1_TOKEN=$(echo "$USER1_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])" 2>/dev/null || echo "")
 
-ECHO_RESPONSE=$(register_user "agent-echo" "agent123")
-ECHO_TOKEN=$(echo "$ECHO_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])" 2>/dev/null || echo "")
-
 # Now switch AS registration to exclusive mode and restart Synapse
 cat > "$SYNAPSE_DIR/appservice-openclaw.yaml" <<YAML
 id: openclaw-agent-service
@@ -212,11 +209,6 @@ sleep 3
 
 if [ -z "$USER1_TOKEN" ]; then
   err "Failed to get user1 access token"
-  exit 1
-fi
-
-if [ -z "$ECHO_TOKEN" ]; then
-  err "Failed to get agent-echo access token"
   exit 1
 fi
 
@@ -300,22 +292,6 @@ if [ -n "$HQ_SPACE_ID" ] && [ -n "$INCIDENT_ROOM_ID" ]; then
   log "Added #incident-test as child of OpenClaw HQ"
 fi
 
-# Invite echo agent to #general and have it join
-if [ -n "$GENERAL_ROOM_ID" ]; then
-  curl -s "$HOMESERVER_URL/_matrix/client/v3/rooms/$GENERAL_ROOM_ID/invite" \
-    -H "Authorization: Bearer $USER1_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d "{\"user_id\": \"@agent-echo:$SERVER_NAME\"}" > /dev/null 2>&1 || true
-
-  ENCODED_GENERAL_JOIN=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$GENERAL_ROOM_ID'))")
-  curl -s "$HOMESERVER_URL/_matrix/client/v3/join/$ENCODED_GENERAL_JOIN" \
-    -H "Authorization: Bearer $ECHO_TOKEN" \
-    -H "Content-Type: application/json" \
-    -d '{}' > /dev/null 2>&1 || true
-
-  log "Echo agent joined #general"
-fi
-
 # --- Side Projects Space ---
 log "Creating 'Side Projects' Space..."
 SIDE_SPACE_RESPONSE=$(curl -s "$HOMESERVER_URL/_matrix/client/v3/createRoom" \
@@ -375,12 +351,6 @@ AGENT_PREFIX=agent-
 HOMESERVER_DOMAIN=$SERVER_NAME
 ENV
 
-cat > "$ROOT_DIR/agents/echo/.env" <<ENV
-HOMESERVER_URL=$HOMESERVER_URL
-BOT_USER_ID=@agent-echo:$SERVER_NAME
-BOT_ACCESS_TOKEN=$ECHO_TOKEN
-ENV
-
 log "Environment files written."
 
 # Summary
@@ -404,8 +374,7 @@ echo -e "    [Space] Side Projects      (#side-projects:$SERVER_NAME)"
 echo -e "      └── #random:$SERVER_NAME"
 echo ""
 echo -e "  ${YELLOW}Next steps:${NC}"
-echo -e "    1. pnpm dev              # Start web client + agents"
+echo -e "    1. pnpm dev              # Start web client"
 echo -e "    2. Open http://localhost:5173"
 echo -e "    3. Login as user1 / user123"
-echo -e "    4. Go to #general and type !help"
 echo ""

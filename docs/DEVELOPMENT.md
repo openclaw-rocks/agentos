@@ -17,7 +17,6 @@
 | admin | admin123 | Admin account |
 | user1 | user123 | Primary test user |
 | testuser | testuser123 | Additional test user |
-| agent-echo | agent123 | Echo bot |
 
 ## Spaces & Rooms
 - OpenClaw HQ (#openclaw-hq) — general, incident-test

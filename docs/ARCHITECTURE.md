@@ -10,50 +10,50 @@ Layer 0 — Foundation
            │
 Layer 1 — Core Libraries (depend only on protocol)
 ┌──────────┴──────────┬────────────────┬─────────────────┬──────────────────┐
-│  @openclaw/a2ui     │  agent-sdk     │  context-engine  │  input-engine    │
-│  Component registry │  Agent helpers │  Query & store   │  Multi-modal     │
-│  Validation         │  UIBuilder     │  ports           │  speech, image   │
-│  Serialization      │  MatrixContext │                  │                  │
-└─────────────────────┴───────┬────────┴──────────────────┴──────────────────┘
-                              │        ┌──────────────────┐
-                              │        │  personalization  │
-                              │        │  Preferences,     │
-                              │        │  signals, triggers │
-                              │        └──────────────────┘
-Layer 2 — Applications & Agents
-┌─────────────────────┬───────┴────────┬──────────────────┐
-│  @openclaw/shell    │  @openclaw/    │  @openclaw/      │
-│  React web client   │  runtime       │  agent-echo      │
-│  Depends on:        │  Depends on:   │  Depends on:     │
-│    protocol         │    protocol    │    protocol      │
-│                     │    agent-sdk   │    agent-sdk     │
-└─────────────────────┴────────────────┴──────────────────┘
+│  @openclaw/a2ui     │  context-engine │  input-engine    │  personalization │
+│  Component registry │  Query & store  │  Multi-modal     │  Preferences,    │
+│  Validation         │  ports          │  speech, image   │  signals         │
+│  Serialization      │                 │                  │                  │
+└─────────────────────┴────────────────┴──────────────────┴──────────────────┘
+
+Layer 2 — Applications
+┌─────────────────────┬────────────────┐
+│  @openclaw/shell    │  @openclaw/    │
+│  React web client   │  runtime       │
+│  Depends on:        │  Depends on:   │
+│    protocol         │    protocol    │
+└─────────────────────┴────────────────┘
+
+Layer 3 — Agent Skills (external to this repo)
+┌─────────────────────────────────────────┐
+│  agentos-agent skill (OpenClaw)         │
+│  Teaches agents: A2UI, status, tasks    │
+│  Provides: oc-agentos CLI tool          │
+│  Uses: Matrix Client-Server API directly│
+└─────────────────────────────────────────┘
 ```
 
 ## Package Boundary Rules
 
-1. **`packages/` never imports from `apps/` or `agents/`**
+1. **`packages/` never imports from `apps/`**
    Packages are reusable libraries. They must not reference application-specific code.
 
-2. **`apps/` never imports from `agents/`**
-   Agents are independently deployed units discovered at runtime via Matrix.
-
-3. **All internal packages depend on `@openclaw/protocol` as the shared vocabulary**
+2. **All internal packages depend on `@openclaw/protocol` as the shared vocabulary**
    Protocol defines event types, component interfaces, and constants used across the system.
 
-4. **Hexagonal architecture for domain packages**
+3. **Hexagonal architecture for domain packages**
    `context-engine`, `input-engine`, and `personalization` use ports & adapters:
    - `src/ports/` — interfaces (driven/driving)
    - `src/domain/` — pure business logic
    - `src/adapters/` — concrete implementations (Matrix, SQLite, APIs)
 
-5. **Shell depends only on `protocol`**
+4. **Shell depends only on `protocol`**
    The shell renders A2UI by interpreting protocol types directly. It does not depend on
-   `a2ui` or `agent-sdk` — those are agent-side concerns.
+   `a2ui` — that is an agent-side concern.
 
-6. **Agent SDK is the agent-side boundary**
-   All agents depend on `agent-sdk` for Matrix communication, UIBuilder, and context helpers.
-   Agents should not use `matrix-js-sdk` directly.
+5. **Agents are OpenClaw instances, not in-repo packages**
+   Agents communicate via Matrix events using the `agentos-agent` skill. They are
+   independently deployed OpenClaw processes, not TypeScript packages in this monorepo.
 
 ## Enforcing Boundaries
 
@@ -66,13 +66,13 @@ Boundaries are enforced via:
 ## Data Flow
 
 ```
-User Input → Shell (React) → Matrix Room → Runtime (App Service) → Agent
-                                                                     │
-                                                                     ▼
-                                                              OpenClaw Gateway
-                                                              (LLM + Tools)
-                                                                     │
-                                                                     ▼
+User Input → Shell (React) → Matrix Room → Agent (OpenClaw instance)
+                                                    │
+                                                    ▼
+                                             OpenClaw Brain
+                                             (LLM + Skills + Tools)
+                                                    │
+                                                    ▼
 Agent Response → Matrix Room Event (rocks.openclaw.agent.*) → Shell renders A2UI
 ```
 

@@ -1,23 +1,16 @@
-# Multi-stage build for agent containers
-# Stage 1: Build
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/ packages/
-COPY agents/ agents/
-RUN corepack enable && pnpm install --frozen-lockfile
-RUN pnpm --filter @openclaw/agent-sdk build
-# Agent name passed as build arg
-ARG AGENT_NAME=echo
-RUN pnpm --filter @openclaw/agent-${AGENT_NAME} build
-
-# Stage 2: Runtime
+# OpenClaw agent container with agentos-agent skill
+# Agents are OpenClaw instances — this image bundles the skill for easy deployment.
 FROM node:20-alpine
 WORKDIR /app
-# Copy only production deps + built output
-COPY --from=builder /app/node_modules node_modules
-COPY --from=builder /app/packages packages
-COPY --from=builder /app/agents agents
-ARG AGENT_NAME=echo
-ENV AGENT_NAME=${AGENT_NAME}
-CMD ["sh", "-c", "node agents/${AGENT_NAME}/dist/index.js"]
+
+# Copy the agentos-agent skill
+COPY skills/agentos-agent/ skills/agentos-agent/
+
+# The agent is an OpenClaw instance configured with:
+#   OC_AGENTOS_HOMESERVER    — Matrix homeserver URL
+#   OC_AGENTOS_ACCESS_TOKEN  — Matrix access token
+#   OC_AGENTOS_USER_ID       — Matrix user ID
+#   OC_AGENTOS_AGENT_NAME    — Display name
+#   OC_AGENTOS_CAPABILITIES  — Comma-separated capabilities
+#
+# Mount or install OpenClaw separately. This image provides only the skill files.

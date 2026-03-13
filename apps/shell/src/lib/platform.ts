@@ -2,6 +2,28 @@ export const isTauri = (): boolean => {
   return "__TAURI_INTERNALS__" in window;
 };
 
+/**
+ * Whether this is the hosted version of AgentOS (openclaw.rocks).
+ *
+ * Set via VITE_IS_HOSTED=true at build time. The hosted version includes
+ * additional UX for non-technical users: simplified onboarding, managed
+ * spaces, and billing. The open-source version exposes raw Matrix concepts.
+ *
+ * Code that differs between hosted and open-source should check this flag:
+ *
+ *   if (isHosted()) {
+ *     // Show friendly "Create Space" wizard
+ *   } else {
+ *     // Show raw Matrix room creation
+ *   }
+ *
+ * Hosted-only features live in apps/shell/src/ee/ and are tree-shaken
+ * out of open-source builds.
+ */
+export const isHosted = (): boolean => {
+  return import.meta.env.VITE_IS_HOSTED === "true";
+};
+
 /** Push notification platform type */
 export type PushPlatform = "web" | "tauri" | "unsupported";
 

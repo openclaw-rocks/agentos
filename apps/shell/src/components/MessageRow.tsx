@@ -683,7 +683,7 @@ interface HoverActionsProps {
 function HoverActions({
   msg,
   roomId,
-  _userId,
+  userId: _userId,
   isOwnMessage,
   isModerator,
   threadUnreadCount,

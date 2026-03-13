@@ -167,19 +167,19 @@ is earned, not imposed.
 │                  AGENT INSTANCE                       │
 │                                                       │
 │  ┌─────────────────────┐  ┌───────────────────────┐  │
-│  │   Matrix Interface  │  │   OpenClaw Gateway    │  │
-│  │   (@openclaw/       │  │   (ws://127.0.0.1:    │  │
-│  │    agent-sdk)       │  │    18789)              │  │
-│  │                     │  │                        │  │
-│  │  Receives events    │  │  LLM calls            │  │
-│  │  Sends A2UI         │  │  Tool execution       │  │
-│  │  Status updates     │  │  Skill management     │  │
-│  │  Cross-agent IPC    │  │  Session state        │  │
+│  │   Matrix Interface  │  │   OpenClaw Brain      │  │
+│  │   (agentos-agent    │  │   (LLM + ReAct loop)  │  │
+│  │    skill + oc-      │  │                        │  │
+│  │    agentos CLI)     │  │  LLM calls            │  │
+│  │                     │  │  Tool execution       │  │
+│  │  Receives events    │  │  Skill management     │  │
+│  │  Sends A2UI         │  │  Session state        │  │
+│  │  Status updates     │  │  Memory (MEMORY.md)   │  │
 │  └─────────┬───────────┘  └───────────┬───────────┘  │
 │            │      Agent Logic          │              │
 │            │    ┌──────────┐          │              │
-│            └────┤  Domain  ├──────────┘              │
-│                 │  Handler │                          │
+│            └────┤  OpenClaw├──────────┘              │
+│                 │  Instance│                          │
 │                 └──────────┘                          │
 │                                                       │
 │  Deployed via: OpenClaw K8s Operator (production)     │
@@ -187,12 +187,11 @@ is earned, not imposed.
 └─────────────────────────────────────────────────────┘
 ```
 
-Each agent instance has two interfaces:
-- **Matrix interface** (`@openclaw/agent-sdk`): for receiving user events, emitting A2UI,
-  communicating with other agents, reading/writing state.
-- **OpenClaw Gateway** (internal): for LLM reasoning, tool execution, skill access.
-  This is internal to the agent container — the user and shell never talk to the Gateway
-  directly.
+Each agent instance is an OpenClaw process with two interfaces:
+- **Matrix interface** (`agentos-agent` skill + `oc-agentos` CLI): for receiving user events,
+  emitting A2UI, communicating with other agents, reading/writing state.
+- **OpenClaw Brain** (internal): LLM reasoning, tool execution, skill access, memory.
+  This is internal to the agent — the user and shell never talk to OpenClaw directly.
 
 ---
 
@@ -326,7 +325,6 @@ Each agent instance has two interfaces:
 **Acceptance Criteria:**
 - [ ] `packages/protocol` has zero internal dependencies
 - [ ] `packages/a2ui` depends only on `packages/protocol`
-- [ ] `packages/agent-sdk` depends only on `packages/protocol`
 - [ ] `packages/context-engine` depends only on `packages/protocol`
 - [ ] No package imports from `apps/`
 - [ ] Turborepo build graph reflects these constraints
@@ -355,7 +353,7 @@ Each agent instance has two interfaces:
 - [ ] Each component has TypeScript type in `packages/protocol`
 - [ ] Each component has validation in `packages/a2ui`
 - [ ] Each component has a React renderer in `apps/shell`
-- [ ] UIBuilder updated with fluent methods for each new component
+- [ ] A2UI component examples documented in `agentos-agent` skill
 - [ ] Storybook or equivalent for visual testing of all components
 
 ---
@@ -824,7 +822,7 @@ Each agent instance has two interfaces:
 **so that** each agent gets production-grade infra automatically.
 
 **Acceptance Criteria:**
-- [ ] Agent Docker images built with our custom `@openclaw/agent-sdk` + OpenClaw Gateway
+- [ ] Agent deployed as OpenClaw instances with `agentos-agent` skill + Matrix credentials
 - [ ] Helm chart for the full stack: Synapse, Runtime, shell (static), agent CRDs
 - [ ] Each agent deployed via one `OpenClawInstance` CR
 - [ ] Operator handles: StatefulSet, RBAC, NetworkPolicy, PDB, health probes

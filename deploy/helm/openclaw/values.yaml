@@ -86,12 +86,5 @@ agentDefaults:
   image:
     pullPolicy: IfNotPresent
 
-# List of agents to deploy
-agents: []
-# - name: echo
-#   image:
-#     repository: ghcr.io/openclawrocks/agent-echo
-#     tag: latest
-#   replicas: 1
-#   env:
-#     BOT_USER_ID: "@agent-echo:openclaw.local"
+# Agents are deployed as OpenClaw instances with the agentos-agent skill.
+# See skills/agentos-agent/README.md for configuration details.

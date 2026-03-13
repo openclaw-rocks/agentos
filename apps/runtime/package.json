@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@openclaw/protocol": "workspace:*",
-    "@openclaw/agent-sdk": "workspace:*",
     "matrix-js-sdk": "^36.0.0",
     "express": "^4.21.0",
     "dotenv": "^16.4.0"

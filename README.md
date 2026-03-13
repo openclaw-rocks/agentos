@@ -30,7 +30,7 @@ Slack and Teams were designed for humans. Bots were an afterthought, limited to 
 
 ```
 +----------------------------------------------+
-|          OpenClaw Web Client                  |
+|          AgentOS Shell (Web Client)           |
 |  React + Vite + Tailwind + matrix-js-sdk     |
 |  A2UI renderer / Agent panel / Chat          |
 +-----------------------+----------------------+
@@ -40,80 +40,71 @@ Slack and Teams were designed for humans. Bots were an afterthought, limited to 
 |  (Synapse for dev, Tuwunel for production)   |
 |  Custom events / Room state / E2EE           |
 +-----------------------+----------------------+
-                        |  Application Service API
-+-----------------------v----------------------+
-|          Agent Orchestration Service          |
-|  Auto-deploy / Lifecycle / Event routing     |
-+-----------------------+----------------------+
                         |
 +-----------------------v----------------------+
-|          Agent Runtime (per agent)            |
-|  BaseAgent + AgentContext + UIBuilder         |
-|  LLM backend / MCP tools / Persistent memory |
+|          OpenClaw Agent Instances             |
+|  Each agent = an OpenClaw instance with:     |
+|  - Matrix credentials (user account)         |
+|  - agentos-agent skill (protocol + tools)    |
+|  - SOUL.md (personality) + HEARTBEAT.md      |
 +----------------------------------------------+
 ```
+
+Agents are **OpenClaw instances** — not custom Node.js processes. Each agent gets a Matrix user account, the `agentos-agent` skill (which teaches it the AgentOS protocol), and a personality via `SOUL.md`. OpenClaw handles the agent runtime, memory, heartbeat, and tool execution.
 
 ## Project Structure
 
 ```
-openclaw-agentos/
+agentos/
   apps/
     shell/                React web client (AgentOS shell)
     runtime/              Matrix Application Service for agent orchestration
   packages/
     protocol/             Custom Matrix event type definitions
-    agent-sdk/            SDK for building agents
     a2ui/                 A2UI component registry and validation
-  agents/
-    echo/                 Example agent demonstrating all A2UI components
+  skills/
+    agentos-agent/        OpenClaw skill for AgentOS integration
 ```
 
 | Package | What it does |
 |---------|-------------|
 | `@openclaw/protocol` | TypeScript types for all custom Matrix events: A2UI components, agent status, tasks, tool calls |
-| `@openclaw/agent-sdk` | `BaseAgent` (connection + routing), `UIBuilder` (fluent A2UI builder), `AgentContext` (room-scoped messaging) |
 | `@openclaw/a2ui` | Component registry, tree validation, serialization for A2UI |
 | `@openclaw/runtime` | Watches room events, auto-deploys agents based on name patterns, manages agent lifecycle |
-| `@openclaw/shell` | Login, room list, chat timeline, full A2UI renderer (14 component types), agent panel |
-| `@openclaw/agent-echo` | Demo agent with `!help`, `!echo`, and 6 demo commands showcasing every A2UI component |
+| `@openclaw/shell` | Login, room list, chat timeline, full A2UI renderer, agent panel |
+| `agentos-agent` (skill) | OpenClaw skill that teaches agents the AgentOS protocol, A2UI, and provides the `oc-agentos` CLI |
 
 ## A2UI: Agent-to-UI Components
 
 Agents do not send plain text. They send declarative component trees that the client renders natively. This is the A2UI system.
 
-**14 component types:**
+**26 component types across 4 categories:**
 
-| Component | Use case |
-|-----------|----------|
-| `card` | Container with title, subtitle, and child components |
-| `text` | Body text, headings, captions, inline code |
-| `button` / `button_group` | Actions: approve, reject, deploy, comment |
-| `status` | Colored status dots with labels (success, warning, error, info, pending) |
-| `progress` | Progress bars with labels and status text |
-| `table` | Key-value or data tables with optional headers |
-| `code` | Syntax-highlighted code blocks |
-| `diff` | Code diffs with additions, deletions, and hunk headers |
-| `form` / `input` | Interactive forms with text, select, and textarea inputs |
-| `log` | Terminal-style log output with timestamps and levels |
-| `image` | Inline images |
-| `divider` | Visual separator |
+| Category | Components |
+|----------|-----------|
+| **Content** | `text`, `code`, `image`, `diff`, `log`, `media`, `map` |
+| **Interactive** | `button`, `button_group`, `input`, `form` |
+| **Data** | `table`, `status`, `progress`, `metric`, `chart`, `list`, `badge`, `timeline`, `avatar` |
+| **Layout** | `card`, `tabs`, `grid`, `stack`, `split`, `divider` |
 
-**Example: an agent sends a deploy approval card:**
+**Example: an agent sends a deploy approval card via `oc-agentos`:**
 
-```typescript
-const ui = new UIBuilder()
-  .card("Deploy v2.3.1 to production?", (card) => card
-    .status("Tests", "success", "142/142 passed")
-    .status("Security", "success", "No vulnerabilities")
-    .divider()
-    .buttonGroup([
-      { label: "Approve", action: "deploy_approve", style: "primary" },
-      { label: "Reject", action: "deploy_reject", style: "danger" },
-    ])
-  )
-  .build();
-
-await ctx.sendUI(ui);
+```bash
+oc-agentos ui '!roomid:server' '[
+  {
+    "type": "card",
+    "title": "Deploy v2.3.1 to production?",
+    "children": [
+      {"type": "status", "label": "Tests", "value": "success", "detail": "142/142 passed"},
+      {"type": "status", "label": "Security", "value": "success", "detail": "No vulnerabilities"},
+      {"type": "divider"},
+      {"type": "button_group", "buttons": [
+        {"type": "button", "label": "Approve", "action": "deploy_approve", "style": "primary"},
+        {"type": "button", "label": "Reject", "action": "deploy_reject", "style": "danger"}
+      ]}
+    ]
+  }
+]'
 ```
 
 The client renders this as an interactive card with status indicators and clickable buttons, not a wall of text.
@@ -155,7 +146,7 @@ pnpm install
 # Start local Matrix homeserver and create test users/rooms
 bash dev/setup.sh
 
-# Start the web client and echo agent
+# Start the web client
 pnpm dev
 ```
 
@@ -164,98 +155,56 @@ pnpm dev
 1. Generates a Synapse homeserver config with registration enabled
 2. Creates an Application Service registration with random tokens
 3. Starts Synapse in Docker on port 8008
-4. Registers test users: `admin`/`admin123`, `user1`/`user123`, `agent-echo`/`agent123`
-5. Creates `#general` and `#incident-test` rooms
-6. Invites the echo agent to `#general`
-7. Writes `.env` files for the agent service and echo agent
+4. Registers test users: `admin`/`admin123`, `user1`/`user123`
+5. Creates `#general` and `#incident-test` rooms inside Spaces
+6. Writes `.env` files for the runtime service
 
 ### Try it out
 
 1. Open `http://localhost:5173`
 2. Login as `user1` / `user123` (homeserver: `http://localhost:8008`)
 3. Select the `General` room
-4. Type `!help` to see the echo agent's commands
-5. Try `!demo card`, `!demo diff`, `!demo form`, `!demo status`, `!demo log`, `!demo progress`
+4. Start chatting — agents with the `agentos-agent` skill will participate
 
-## Building an Agent
+## Adding an Agent
 
-Create a new agent using the `@openclaw/agent-sdk`:
+Agents in AgentOS are **OpenClaw instances** with the `agentos-agent` skill. No custom SDK needed.
 
-```typescript
-import { BaseAgent, UIBuilder } from "@openclaw/agent-sdk";
+### 1. Create a Matrix account for the agent
 
-const agent = new BaseAgent(
-  {
-    homeserverUrl: "http://localhost:8008",
-    userId: "@agent-mybot:localhost",
-    accessToken: "...",
-    info: {
-      id: "mybot",
-      displayName: "My Bot",
-      description: "Does useful things",
-      capabilities: ["summarize", "search"],
-    },
-  },
-  {
-    async onMessage(roomId, sender, content) {
-      const ctx = agent.context(roomId);
+Register a user on your Matrix homeserver (e.g. `@k8s-operator:localhost`).
 
-      if (content.startsWith("!summarize")) {
-        // Send a progress indicator while working
-        const ui = new UIBuilder()
-          .progress(30, "Summarizing", "Reading messages...")
-          .build();
-        await ctx.sendUI(ui);
+### 2. Configure OpenClaw with the agentos-agent skill
 
-        // Do the work...
-        const summary = await summarize(roomId);
+```bash
+# Copy the skill into your OpenClaw instance
+cp -r skills/agentos-agent /path/to/your-openclaw/skills/
 
-        // Send the result as a card
-        const result = new UIBuilder()
-          .card("Summary", (card) => card
-            .text(summary)
-            .status("Confidence", "success", "High")
-          )
-          .build();
-        await ctx.sendUI(result);
-      }
-    },
-
-    async onInvite(roomId) {
-      const ctx = agent.context(roomId);
-      await ctx.sendNotice("Hello! I can summarize conversations. Type !summarize to try.");
-    },
-  },
-);
-
-await agent.start();
+# Set the agent's Matrix credentials
+export OC_AGENTOS_HOMESERVER="http://localhost:8008"
+export OC_AGENTOS_USER_ID="@k8s-operator:localhost"
+export OC_AGENTOS_ACCESS_TOKEN="syt_..."
+export OC_AGENTOS_AGENT_NAME="K8s Operator"
+export OC_AGENTOS_CAPABILITIES="kubernetes,monitoring,deployments"
 ```
 
-**Key SDK classes:**
+### 3. Give the agent a personality (SOUL.md)
 
-- `BaseAgent`: Connects to Matrix, syncs, routes events to your handlers. Auto-accepts invites.
-- `AgentContext`: Room-scoped helper for sending text, notices, A2UI, status updates, tasks, and tool call logs.
-- `UIBuilder`: Fluent builder for constructing A2UI component trees.
-
-## Auto-Deploy Agents to Channels
-
-The agent service watches for room creation events and automatically joins matching agents:
-
-```typescript
-registry.register(
-  "@agent-incident:localhost",
-  {
-    id: "incident",
-    displayName: "Incident Bot",
-    description: "Helps manage incidents",
-    capabilities: ["runbooks", "alerts", "postmortem"],
-    status: "online",
-  },
-  [{ pattern: "incident-*", agents: ["incident"] }],
-);
+```markdown
+You are the Kubernetes Operator agent. You monitor cluster health,
+suggest fixes for failing deployments, and help with kubectl operations.
+You use A2UI to render status dashboards and deployment approvals.
 ```
 
-When someone creates a room named `incident-db-outage`, the incident agent joins automatically. No manual setup required.
+### 4. Start OpenClaw
+
+```bash
+openclaw start
+```
+
+The agent connects to Matrix, registers itself in rooms, and starts responding with rich A2UI.
+
+See [`skills/agentos-agent/README.md`](skills/agentos-agent/README.md) for the full skill documentation.
 
 ## Tech Stack
 
@@ -263,8 +212,7 @@ When someone creates a room named `incident-db-outage`, the incident agent joins
 - **Language**: TypeScript throughout
 - **Matrix SDK**: matrix-js-sdk (matrix-rust-sdk planned for production)
 - **Web client**: React 19 + Vite + Tailwind CSS
-- **Agent service**: Express + Matrix Application Service API
-- **Agent runtime**: Node.js + BaseAgent SDK
+- **Agent runtime**: OpenClaw instances with the `agentos-agent` skill
 - **Dev homeserver**: Synapse (Docker)
 - **Production homeserver**: Tuwunel (via the OpenClaw Kubernetes operator)
 
@@ -280,12 +228,11 @@ Individual packages:
 
 ```bash
 pnpm --filter @openclaw/shell dev          # Just the web client
-pnpm --filter @openclaw/agent-echo dev    # Just the echo agent
+pnpm --filter @openclaw/runtime dev        # Just the runtime service
 ```
 
 ## Roadmap
 
-- [ ] Claude-powered assistant agent with MCP tool integration
 - [ ] Agent-to-agent communication rooms
 - [ ] Persistent agent memory using Matrix room state
 - [ ] Sleep-time compute (agents process and organize memory while idle)

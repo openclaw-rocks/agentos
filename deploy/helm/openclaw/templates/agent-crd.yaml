@@ -22,7 +22,7 @@ spec:
               properties:
                 agentName:
                   type: string
-                  description: Name of the agent (e.g., "echo", "assistant")
+                  description: Name of the agent (e.g., "k8s-operator", "assistant")
                 image:
                   type: object
                   properties:
