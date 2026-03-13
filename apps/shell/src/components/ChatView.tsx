@@ -383,6 +383,8 @@ export function ChatView({
     const text = input.trim();
     if (!text) return;
     setInput("");
+    // Reset textarea height after clearing
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
     setShowCommandHint(false);
     setMentionQuery(null);
     onInputSend();
@@ -1779,6 +1781,10 @@ export function ChatView({
               onChange={(e) => {
                 const val = e.target.value;
                 setInput(val);
+                // Auto-grow textarea up to 5 lines
+                const ta = e.target;
+                ta.style.height = "auto";
+                ta.style.height = `${Math.min(ta.scrollHeight, 120)}px`;
                 onInputKeystroke();
                 // Reset tab-cycle on manual text input
                 tabCycleRef.current = null;
@@ -1810,7 +1816,8 @@ export function ChatView({
               placeholder={isDM ? `Message ${roomName}...` : `Message #${roomName}...`}
               aria-label="Message composer"
               rows={1}
-              className="flex-1 bg-transparent text-sm text-primary placeholder-muted resize-none focus:outline-none"
+              className="flex-1 bg-transparent text-sm text-primary placeholder-muted resize-none focus:outline-none overflow-y-auto"
+              style={{ maxHeight: 120 }}
             />
             {/* Markdown toggle */}
             <button
