@@ -222,6 +222,10 @@ export function ChatView({
   const lastReadEventIdRef = useRef<string | undefined>(undefined);
   const [showJumpToUnread, setShowJumpToUnread] = useState(false);
   useEffect(() => {
+    // Reset jump indicators on room change
+    setShowJumpToUnread(false);
+    setShowJumpToBottom(false);
+
     unreadTracker.snapshotLastRead(roomId);
     lastReadEventIdRef.current = unreadTracker.getLastReadEventId(roomId);
     // Show the "Jump to new messages" button when there's a read marker and new messages exist after it
@@ -239,6 +243,7 @@ export function ChatView({
 
     const timer = setTimeout(() => {
       unreadTracker.markAsRead(roomId, appSettings.sendReadReceipts);
+      setShowJumpToUnread(false);
     }, 1000);
 
     return () => {

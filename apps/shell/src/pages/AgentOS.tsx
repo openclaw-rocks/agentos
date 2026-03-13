@@ -57,7 +57,9 @@ export function AgentOS() {
   const isMobile = useIsMobile();
 
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
-  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(() => {
+    return sessionStorage.getItem("agentos:selectedRoom");
+  });
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [showAgentPanel, setShowAgentPanel] = useState(false);
   const [showCreateSpace, setShowCreateSpace] = useState(false);
@@ -77,6 +79,15 @@ export function AgentOS() {
   const [showWidgetPanel, setShowWidgetPanel] = useState(false);
   const [showIntegrationManager, setShowIntegrationManager] = useState(false);
   const [showBugReport, setShowBugReport] = useState(false);
+
+  // Persist selected room across refresh
+  useEffect(() => {
+    if (selectedRoomId) {
+      sessionStorage.setItem("agentos:selectedRoom", selectedRoomId);
+    } else {
+      sessionStorage.removeItem("agentos:selectedRoom");
+    }
+  }, [selectedRoomId]);
 
   // Recent rooms for breadcrumbs
   const [recentRooms, setRecentRooms] = useState<string[]>(loadRecentRooms);

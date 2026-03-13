@@ -136,6 +136,9 @@ export class EventStore {
   private processEventInternal(event: sdk.MatrixEvent, room: sdk.Room): boolean {
     const eventId = event.getId();
     if (!eventId) return false;
+    // Skip SDK local echoes (status !== null means still sending/queued).
+    // The confirmed event will arrive later with status === null.
+    if (event.status != null) return false;
     if (this.seenIds.has(eventId)) return false;
 
     const type = event.getType();
