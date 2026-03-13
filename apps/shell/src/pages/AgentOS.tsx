@@ -311,6 +311,13 @@ export function AgentOS() {
 
   const handleSelectRoom = useCallback(
     (id: string) => {
+      // Auto-join invited rooms before selecting
+      const room = client.getRoom(id);
+      if (room?.getMyMembership() === "invite") {
+        client.joinRoom(id).catch((err: unknown) => {
+          console.warn("[AgentOS] Failed to auto-join invited room:", err);
+        });
+      }
       setSelectedRoomId(id);
       setActiveThreadId(null);
       // Track recently visited rooms
@@ -323,7 +330,7 @@ export function AgentOS() {
         setMobileShowSidebar(false);
       }
     },
-    [isMobile],
+    [client, isMobile],
   );
 
   const handleMobileBack = useCallback(() => {
