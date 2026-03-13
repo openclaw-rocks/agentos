@@ -654,7 +654,7 @@ export const ChannelList = React.memo(function ChannelList({
 
   return (
     <nav
-      className="w-60 flex-shrink-0 bg-surface-1 border-r border-border flex flex-col"
+      className="w-full sm:w-60 flex-shrink-0 bg-surface-1 border-r border-border flex flex-col"
       aria-label="Channel list"
     >
       {/* Space name header with settings/explore buttons */}

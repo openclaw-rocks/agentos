@@ -396,11 +396,11 @@ export function AgentOS() {
   // Mobile layout
   if (isMobile) {
     return (
-      <div className="h-screen flex flex-col bg-surface-0">
+      <div className="h-[100dvh] flex flex-col bg-surface-0">
         {mobileShowSidebar ? (
           <>
-            {/* Mobile sidebar: SpaceRail + ChannelList side by side */}
-            <div className="flex-1 flex overflow-hidden">
+            {/* Mobile sidebar: SpaceRail + ChannelList fill width */}
+            <div className="flex-1 flex min-h-0 overflow-hidden">
               <SpaceRail
                 selectedSpaceId={selectedSpaceId}
                 onSelectSpace={handleSelectSpace}
@@ -408,22 +408,24 @@ export function AgentOS() {
                 onLogout={logout}
                 onOpenProfileSettings={() => setShowProfileSettings(true)}
               />
-              <ChannelList
-                spaceId={selectedSpaceId}
-                selectedRoomId={selectedRoomId}
-                onSelectRoom={handleSelectRoom}
-                onCreateChannel={() => setShowCreateChannel(true)}
-                onNewDM={() => setShowNewDM(true)}
-                onBrowseRooms={() => setShowRoomDirectory(true)}
-                onOpenSpaceSettings={() => setShowSpaceSettings(true)}
-                onExploreSpace={() => setShowSpaceHierarchy(true)}
-                recentRooms={recentRooms}
-                onVisibleRoomIdsChange={handleVisibleRoomIdsChange}
-              />
+              <div className="flex-1 min-w-0">
+                <ChannelList
+                  spaceId={selectedSpaceId}
+                  selectedRoomId={selectedRoomId}
+                  onSelectRoom={handleSelectRoom}
+                  onCreateChannel={() => setShowCreateChannel(true)}
+                  onNewDM={() => setShowNewDM(true)}
+                  onBrowseRooms={() => setShowRoomDirectory(true)}
+                  onOpenSpaceSettings={() => setShowSpaceSettings(true)}
+                  onExploreSpace={() => setShowSpaceHierarchy(true)}
+                  recentRooms={recentRooms}
+                  onVisibleRoomIdsChange={handleVisibleRoomIdsChange}
+                />
+              </div>
             </div>
 
-            {/* Bottom padding for MobileNav */}
-            <div className="h-14" />
+            {/* Bottom padding for MobileNav + safe area */}
+            <div className="h-14 pb-[env(safe-area-inset-bottom)]" />
           </>
         ) : (
           <>
@@ -433,7 +435,7 @@ export function AgentOS() {
               <div className="h-12 flex items-center gap-2 px-3 border-b border-border flex-shrink-0">
                 <button
                   onClick={handleMobileBack}
-                  className="p-1.5 text-secondary hover:text-primary hover:bg-surface-3 rounded-lg transition-colors"
+                  className="p-2 -ml-1 text-secondary active:text-primary active:bg-surface-3 rounded-lg transition-colors"
                 >
                   <svg
                     className="w-5 h-5"
@@ -453,8 +455,8 @@ export function AgentOS() {
               {renderMainContent()}
             </div>
 
-            {/* Bottom padding for MobileNav */}
-            <div className="h-14" />
+            {/* Bottom padding for MobileNav + safe area */}
+            <div className="h-14 pb-[env(safe-area-inset-bottom)]" />
           </>
         )}
 
@@ -556,7 +558,7 @@ export function AgentOS() {
 
   // Desktop layout
   return (
-    <div className="h-screen flex bg-surface-0">
+    <div className="h-[100dvh] flex bg-surface-0">
       {/* Skip navigation link for screen readers */}
       <a
         href="#main-content"

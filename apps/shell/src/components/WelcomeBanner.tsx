@@ -23,11 +23,15 @@ export function WelcomeBanner({ onDismiss }: WelcomeBannerProps) {
         <h3 className="text-sm font-semibold text-primary mb-1">Welcome to AgentOS</h3>
         <p className="text-xs text-secondary leading-relaxed">
           Your agent-first operating system powered by the Matrix protocol. Create spaces, invite
-          agents, and collaborate in real-time. Use{" "}
-          <kbd className="px-1 py-0.5 bg-surface-3 rounded text-secondary text-[10px] font-mono">
-            Cmd+K
-          </kbd>{" "}
-          to quickly switch between spaces and channels.
+          agents, and collaborate in real-time.
+          <span className="hidden sm:inline">
+            {" "}
+            Use{" "}
+            <kbd className="px-1 py-0.5 bg-surface-3 rounded text-secondary text-[10px] font-mono">
+              Cmd+K
+            </kbd>{" "}
+            to quickly switch between spaces and channels.
+          </span>
         </p>
       </div>
 

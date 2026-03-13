@@ -8,17 +8,17 @@ interface MobileNavProps {
 
 export function MobileNav({ onShowSpaces, onShowSearch, onShowSettings }: MobileNavProps) {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-1 border-t border-border flex items-center justify-around py-2 z-40">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-surface-1/95 backdrop-blur-lg border-t border-border flex items-center justify-around pb-[env(safe-area-inset-bottom)] z-40">
       <button
         onClick={onShowSpaces}
-        className="flex flex-col items-center gap-0.5 px-4 py-1 text-secondary hover:text-primary transition-colors"
+        className="flex flex-col items-center gap-0.5 min-w-[64px] py-2.5 text-secondary active:text-primary transition-colors"
       >
         <svg
-          className="w-5 h-5"
+          className="w-6 h-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth={1.8}
         >
           <path
             strokeLinecap="round"
@@ -26,19 +26,19 @@ export function MobileNav({ onShowSpaces, onShowSearch, onShowSettings }: Mobile
             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
           />
         </svg>
-        <span className="text-[10px]">Spaces</span>
+        <span className="text-[10px] leading-none">Spaces</span>
       </button>
 
       <button
         onClick={onShowSearch}
-        className="flex flex-col items-center gap-0.5 px-4 py-1 text-secondary hover:text-primary transition-colors"
+        className="flex flex-col items-center gap-0.5 min-w-[64px] py-2.5 text-secondary active:text-primary transition-colors"
       >
         <svg
-          className="w-5 h-5"
+          className="w-6 h-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth={1.8}
         >
           <path
             strokeLinecap="round"
@@ -46,19 +46,19 @@ export function MobileNav({ onShowSpaces, onShowSearch, onShowSettings }: Mobile
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>
-        <span className="text-[10px]">Search</span>
+        <span className="text-[10px] leading-none">Search</span>
       </button>
 
       <button
         onClick={onShowSettings}
-        className="flex flex-col items-center gap-0.5 px-4 py-1 text-secondary hover:text-primary transition-colors"
+        className="flex flex-col items-center gap-0.5 min-w-[64px] py-2.5 text-secondary active:text-primary transition-colors"
       >
         <svg
-          className="w-5 h-5"
+          className="w-6 h-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth={1.8}
         >
           <path
             strokeLinecap="round"
@@ -67,7 +67,7 @@ export function MobileNav({ onShowSpaces, onShowSearch, onShowSettings }: Mobile
           />
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
-        <span className="text-[10px]">Settings</span>
+        <span className="text-[10px] leading-none">Settings</span>
       </button>
     </div>
   );
