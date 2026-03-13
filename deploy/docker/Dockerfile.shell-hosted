@@ -1,10 +1,11 @@
 # Shell — hosted version build (VITE_IS_HOSTED=true)
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY packages/ packages/
 COPY apps/shell/ apps/shell/
 RUN corepack enable && pnpm install --frozen-lockfile
+RUN pnpm --filter @openclaw/protocol build
 ENV VITE_IS_HOSTED=true
 ENV VITE_HOSTED_API_URL=/api
 RUN pnpm --filter @openclaw/shell build
