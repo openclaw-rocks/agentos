@@ -7,13 +7,12 @@ import { Router } from "express";
 import { MatrixApiError, MatrixClient } from "../matrix.js";
 
 interface SignupRequestBody {
-  username: string;
+  email: string;
   password: string;
-  display_name?: string;
 }
 
 interface LoginRequestBody {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -21,16 +20,25 @@ interface LogoutRequestBody {
   access_token: string;
 }
 
+/** Derive a Matrix-safe username from an email address. */
+function emailToUsername(email: string): string {
+  return email
+    .split("@")[0]
+    .toLowerCase()
+    .replace(/[^a-z0-9._=-]/g, "_")
+    .slice(0, 64);
+}
+
 function isSignupBody(body: unknown): body is SignupRequestBody {
   if (typeof body !== "object" || body === null) return false;
   const obj = body as Record<string, unknown>;
-  return typeof obj.username === "string" && typeof obj.password === "string";
+  return typeof obj.email === "string" && typeof obj.password === "string";
 }
 
 function isLoginBody(body: unknown): body is LoginRequestBody {
   if (typeof body !== "object" || body === null) return false;
   const obj = body as Record<string, unknown>;
-  return typeof obj.username === "string" && typeof obj.password === "string";
+  return typeof obj.email === "string" && typeof obj.password === "string";
 }
 
 function isLogoutBody(body: unknown): body is LogoutRequestBody {
@@ -77,17 +85,18 @@ export function createAuthRouter(matrix: MatrixClient): Router {
     if (!isSignupBody(req.body)) {
       res.status(400).json({
         error: "INVALID_REQUEST",
-        message: "username and password are required",
+        message: "email and password are required",
       });
       return;
     }
 
-    const { username, password, display_name } = req.body;
+    const { email, password } = req.body;
+    const username = emailToUsername(email);
 
-    if (username.length < 1 || username.length > 64) {
+    if (!username) {
       res.status(400).json({
-        error: "INVALID_USERNAME",
-        message: "Username must be between 1 and 64 characters",
+        error: "INVALID_EMAIL",
+        message: "Could not derive a username from that email address",
       });
       return;
     }
@@ -101,7 +110,7 @@ export function createAuthRouter(matrix: MatrixClient): Router {
     }
 
     try {
-      const result = await matrix.registerUser(username, password, display_name);
+      const result = await matrix.registerUser(username, password, email);
 
       res.status(201).json({
         user_id: result.user_id,
@@ -121,12 +130,13 @@ export function createAuthRouter(matrix: MatrixClient): Router {
     if (!isLoginBody(req.body)) {
       res.status(400).json({
         error: "INVALID_REQUEST",
-        message: "username and password are required",
+        message: "email and password are required",
       });
       return;
     }
 
-    const { username, password } = req.body;
+    const { email, password } = req.body;
+    const username = emailToUsername(email);
 
     try {
       const result = await matrix.loginUser(username, password);
