@@ -16,12 +16,12 @@ import { createSpacesRouter } from "./routes/spaces.js";
 const PORT = parseInt(process.env.PORT ?? "3001", 10);
 const MATRIX_HOMESERVER_URL = process.env.MATRIX_HOMESERVER_URL ?? "http://localhost:8008";
 const MATRIX_SERVER_NAME = process.env.MATRIX_SERVER_NAME ?? "localhost";
-const MATRIX_ADMIN_TOKEN = process.env.MATRIX_ADMIN_TOKEN ?? "";
+const MATRIX_REGISTRATION_TOKEN = process.env.MATRIX_REGISTRATION_TOKEN ?? "";
 const K8S_NAMESPACE = process.env.K8S_NAMESPACE ?? "agentos";
 
 function validateConfig(): void {
-  if (!MATRIX_ADMIN_TOKEN) {
-    console.error("[hosted-api] MATRIX_ADMIN_TOKEN must be set");
+  if (!MATRIX_REGISTRATION_TOKEN) {
+    console.error("[hosted-api] MATRIX_REGISTRATION_TOKEN must be set");
     process.exit(1);
   }
 }
@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   const matrix = new MatrixClient({
     homeserverUrl: MATRIX_HOMESERVER_URL,
     serverName: MATRIX_SERVER_NAME,
-    adminToken: MATRIX_ADMIN_TOKEN,
+    registrationToken: MATRIX_REGISTRATION_TOKEN,
   });
 
   const k8s = new AgentCrdClient(K8S_NAMESPACE);

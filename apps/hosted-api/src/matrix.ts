@@ -28,7 +28,7 @@ interface CreateRoomResponse {
 interface MatrixClientConfig {
   homeserverUrl: string;
   serverName: string;
-  adminToken: string;
+  registrationToken: string;
 }
 
 function isMatrixError(body: unknown): body is MatrixErrorResponse {
@@ -38,6 +38,10 @@ function isMatrixError(body: unknown): body is MatrixErrorResponse {
     "errcode" in body &&
     typeof (body as Record<string, unknown>).errcode === "string"
   );
+}
+
+function isUiaResponse(body: unknown): boolean {
+  return typeof body === "object" && body !== null && "flows" in body && "session" in body;
 }
 
 async function matrixFetch<T>(
@@ -67,6 +71,15 @@ async function matrixFetch<T>(
   const responseBody: unknown = await response.json();
 
   if (!response.ok) {
+    // Handle UIA (User-Interactive Authentication) 401 responses
+    if (response.status === 401 && isUiaResponse(responseBody)) {
+      throw new MatrixApiError(
+        "M_USER_INTERACTIVE_AUTH",
+        "User-Interactive Authentication required",
+        401,
+        (responseBody as { session?: string }).session,
+      );
+    }
     if (isMatrixError(responseBody)) {
       throw new MatrixApiError(responseBody.errcode, responseBody.error, response.status);
     }
@@ -77,13 +90,17 @@ async function matrixFetch<T>(
 }
 
 export class MatrixApiError extends Error {
+  public readonly session?: string;
+
   constructor(
     public readonly errcode: string,
     public readonly matrixMessage: string,
     public readonly statusCode: number,
+    session?: string,
   ) {
     super(`${errcode}: ${matrixMessage}`);
     this.name = "MatrixApiError";
+    this.session = session;
   }
 }
 
@@ -95,14 +112,35 @@ export class MatrixClient {
   }
 
   /**
-   * Register a new user on the homeserver using the admin registration endpoint.
-   * This uses the shared registration secret / admin token approach.
+   * Register a new user on the homeserver using the registration token flow.
+   * Step 1: POST empty body to get a session ID.
+   * Step 2: POST with m.login.registration_token auth and the session.
    */
   async registerUser(
     username: string,
     password: string,
     displayName?: string,
   ): Promise<RegisterResponse> {
+    // Step 1: Get session from the UIA flow
+    let session: string;
+    try {
+      await matrixFetch<unknown>(this.config.homeserverUrl, "/_matrix/client/v3/register", {
+        method: "POST",
+        body: { username },
+      });
+      // If this succeeds without UIA, unlikely but handle it
+      throw new MatrixApiError("M_UNKNOWN", "Unexpected registration flow", 500);
+    } catch (err) {
+      if (err instanceof MatrixApiError && err.errcode === "M_USER_INTERACTIVE_AUTH") {
+        session = err.session ?? "";
+      } else if (err instanceof MatrixApiError && err.errcode === "M_FORBIDDEN") {
+        throw new MatrixApiError("M_FORBIDDEN", "Registration is disabled on this server", 403);
+      } else {
+        throw err;
+      }
+    }
+
+    // Step 2: Complete registration with the token
     const result = await matrixFetch<RegisterResponse>(
       this.config.homeserverUrl,
       "/_matrix/client/v3/register",
@@ -110,14 +148,15 @@ export class MatrixClient {
         method: "POST",
         body: {
           auth: {
-            type: "m.login.application_service",
+            type: "m.login.registration_token",
+            token: this.config.registrationToken,
+            session,
           },
           username,
           password,
           initial_device_display_name: displayName ?? "AgentOS Web",
           inhibit_login: false,
         },
-        token: this.config.adminToken,
       },
     );
 
