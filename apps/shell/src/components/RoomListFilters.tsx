@@ -6,8 +6,8 @@ const FILTERS: Array<{ value: RoomFilter; label: string }> = [
   { value: "unreads", label: "Unreads" },
   { value: "people", label: "People" },
   { value: "rooms", label: "Rooms" },
-  { value: "favourites", label: "Favourites" },
-  { value: "orphaned", label: "Outside spaces" },
+  { value: "favourites", label: "Favs" },
+  { value: "orphaned", label: "Other" },
 ];
 
 interface RoomListFiltersProps {

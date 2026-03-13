@@ -61,6 +61,17 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
   const [section, setSection] = useState<Section>("appearance");
   const [settings, setSettings] = useState<AppSettings>(loadSettings);
 
+  // Mobile layout: show nav list first, then content on tap
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
+  const [mobileShowNav, setMobileShowNav] = useState(true);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 639px)");
+    const handler = (e: MediaQueryListEvent): void => setIsMobile(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+
   // Account state
   const [displayName, setDisplayName] = useState("");
   const [displayNameSaving, setDisplayNameSaving] = useState(false);
@@ -269,6 +280,148 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
     { key: "about", label: "About" },
   ];
 
+  const renderSettingsContent = (): React.ReactElement => (
+    <>
+      {section === "appearance" && (
+        <AppearanceSection settings={settings} onUpdate={updateSettings} />
+      )}
+      {section === "preferences" && (
+        <PreferencesSection settings={settings} onUpdate={updateSettings} />
+      )}
+      {section === "account" && (
+        <AccountSection
+          client={client}
+          settings={settings}
+          onUpdateSettings={updateSettings}
+          displayName={displayName}
+          onDisplayNameChange={setDisplayName}
+          onSaveDisplayName={handleSaveDisplayName}
+          displayNameSaving={displayNameSaving}
+          displayNameSuccess={displayNameSuccess}
+          avatarUploading={avatarUploading}
+          onAvatarUpload={handleAvatarUpload}
+          oldPassword={oldPassword}
+          onOldPasswordChange={setOldPassword}
+          newPassword={newPassword}
+          onNewPasswordChange={setNewPassword}
+          confirmPassword={confirmPassword}
+          onConfirmPasswordChange={setConfirmPassword}
+          passwordError={passwordError}
+          passwordSuccess={passwordSuccess}
+          passwordSaving={passwordSaving}
+          onChangePassword={handleChangePassword}
+          deactivatePassword={deactivatePassword}
+          onDeactivatePasswordChange={setDeactivatePassword}
+          eraseData={eraseData}
+          onEraseDataChange={setEraseData}
+          deactivating={deactivating}
+          deactivateError={deactivateError}
+          showDeactivateConfirm={showDeactivateConfirm}
+          onShowDeactivateConfirm={setShowDeactivateConfirm}
+          onDeactivateAccount={handleDeactivateAccount}
+        />
+      )}
+      {section === "sessions" && (
+        <SessionsSection
+          client={client}
+          devices={devices}
+          setDevices={setDevices}
+          loading={devicesLoading}
+          error={devicesError}
+          currentDeviceId={currentDeviceId ?? ""}
+          deletingDevice={deletingDevice}
+          onDeleteDevice={handleDeleteDevice}
+          onDeleteAllOther={handleDeleteAllOtherDevices}
+        />
+      )}
+      {section === "security" && <SecuritySettings />}
+      {section === "voicevideo" && <VoiceVideoSettings />}
+      {section === "notifications" && (
+        <NotificationsSection client={client} settings={settings} onUpdate={updateSettings} />
+      )}
+      {section === "shortcuts" && <ShortcutsSection />}
+      {section === "about" && <AboutSection />}
+    </>
+  );
+
+  // Mobile: full-screen with iOS-style drill-down navigation
+  if (isMobile) {
+    return (
+      <div className="fixed inset-0 z-50 bg-surface-1 flex flex-col">
+        {mobileShowNav ? (
+          <>
+            <div className="h-14 flex items-center px-4 border-b border-border flex-shrink-0">
+              <h2 className="text-lg font-bold text-primary flex-1">Settings</h2>
+              <button
+                onClick={onClose}
+                className="p-2 -mr-2 text-secondary active:text-primary rounded-lg transition-colors"
+                aria-label="Close"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto">
+              {navItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => {
+                    setSection(item.key);
+                    setMobileShowNav(false);
+                  }}
+                  className="w-full px-4 py-3.5 text-left text-sm flex items-center justify-between border-b border-border/50 text-secondary active:bg-surface-2 transition-colors"
+                >
+                  <span>{item.label}</span>
+                  <svg
+                    className="w-4 h-4 text-muted"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ))}
+            </nav>
+          </>
+        ) : (
+          <>
+            <div className="h-14 flex items-center px-4 border-b border-border flex-shrink-0 gap-3">
+              <button
+                onClick={() => setMobileShowNav(true)}
+                className="p-2 -ml-2 text-secondary active:text-primary rounded-lg transition-colors"
+                aria-label="Back to settings"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h2 className="text-lg font-bold text-primary">
+                {navItems.find((i) => i.key === section)?.label}
+              </h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">{renderSettingsContent()}</div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop: side-by-side layout in centered modal
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
@@ -304,67 +457,7 @@ export function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactEleme
         </nav>
 
         {/* Content area */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {section === "appearance" && (
-            <AppearanceSection settings={settings} onUpdate={updateSettings} />
-          )}
-          {section === "preferences" && (
-            <PreferencesSection settings={settings} onUpdate={updateSettings} />
-          )}
-          {section === "account" && (
-            <AccountSection
-              client={client}
-              settings={settings}
-              onUpdateSettings={updateSettings}
-              displayName={displayName}
-              onDisplayNameChange={setDisplayName}
-              onSaveDisplayName={handleSaveDisplayName}
-              displayNameSaving={displayNameSaving}
-              displayNameSuccess={displayNameSuccess}
-              avatarUploading={avatarUploading}
-              onAvatarUpload={handleAvatarUpload}
-              oldPassword={oldPassword}
-              onOldPasswordChange={setOldPassword}
-              newPassword={newPassword}
-              onNewPasswordChange={setNewPassword}
-              confirmPassword={confirmPassword}
-              onConfirmPasswordChange={setConfirmPassword}
-              passwordError={passwordError}
-              passwordSuccess={passwordSuccess}
-              passwordSaving={passwordSaving}
-              onChangePassword={handleChangePassword}
-              deactivatePassword={deactivatePassword}
-              onDeactivatePasswordChange={setDeactivatePassword}
-              eraseData={eraseData}
-              onEraseDataChange={setEraseData}
-              deactivating={deactivating}
-              deactivateError={deactivateError}
-              showDeactivateConfirm={showDeactivateConfirm}
-              onShowDeactivateConfirm={setShowDeactivateConfirm}
-              onDeactivateAccount={handleDeactivateAccount}
-            />
-          )}
-          {section === "sessions" && (
-            <SessionsSection
-              client={client}
-              devices={devices}
-              setDevices={setDevices}
-              loading={devicesLoading}
-              error={devicesError}
-              currentDeviceId={currentDeviceId ?? ""}
-              deletingDevice={deletingDevice}
-              onDeleteDevice={handleDeleteDevice}
-              onDeleteAllOther={handleDeleteAllOtherDevices}
-            />
-          )}
-          {section === "security" && <SecuritySettings />}
-          {section === "voicevideo" && <VoiceVideoSettings />}
-          {section === "notifications" && (
-            <NotificationsSection client={client} settings={settings} onUpdate={updateSettings} />
-          )}
-          {section === "shortcuts" && <ShortcutsSection />}
-          {section === "about" && <AboutSection />}
-        </div>
+        <div className="flex-1 overflow-y-auto p-6">{renderSettingsContent()}</div>
       </div>
     </div>
   );

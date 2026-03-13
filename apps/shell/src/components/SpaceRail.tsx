@@ -89,13 +89,13 @@ export const SpaceRail = React.memo(function SpaceRail({
 
   return (
     <nav
-      className="w-16 flex-shrink-0 bg-surface-0 border-r border-border flex flex-col items-center py-3 gap-2"
+      className="w-12 sm:w-16 flex-shrink-0 bg-surface-0 border-r border-border flex flex-col items-center py-2 sm:py-3 gap-1.5 sm:gap-2"
       aria-label="Spaces"
     >
       {/* Home button - shows all rooms not in any space */}
       <button
         onClick={() => onSelectSpace(null)}
-        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all ${
           selectedSpaceId === null
             ? "bg-accent text-inverse rounded-2xl"
             : "bg-surface-2 text-secondary hover:bg-surface-3 hover:text-primary hover:rounded-xl"
@@ -119,7 +119,7 @@ export const SpaceRail = React.memo(function SpaceRail({
         </svg>
       </button>
 
-      <div className="w-8 h-px bg-border my-1" />
+      <div className="w-6 sm:w-8 h-px bg-border my-0.5 sm:my-1" />
 
       {/* Space icons */}
       {spaces.map((space) => {
@@ -130,7 +130,7 @@ export const SpaceRail = React.memo(function SpaceRail({
           <button
             key={space.roomId}
             onClick={() => onSelectSpace(space.roomId)}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group relative ${
+            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all group relative ${
               isSelected
                 ? "bg-accent text-inverse rounded-2xl"
                 : "bg-surface-2 text-secondary hover:bg-surface-3 hover:text-primary hover:rounded-xl"
@@ -159,7 +159,7 @@ export const SpaceRail = React.memo(function SpaceRail({
       {/* Create space button */}
       <button
         onClick={onCreateSpace}
-        className="w-10 h-10 rounded-xl bg-surface-2 text-muted hover:bg-surface-3 hover:text-secondary flex items-center justify-center transition-all hover:rounded-xl mt-1"
+        className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-surface-2 text-muted hover:bg-surface-3 hover:text-secondary flex items-center justify-center transition-all hover:rounded-xl mt-1"
         title="Create space"
         aria-label="Create space"
       >
@@ -181,7 +181,7 @@ export const SpaceRail = React.memo(function SpaceRail({
       <div className="relative" ref={userMenuRef}>
         <button
           onClick={() => setShowUserMenu((prev) => !prev)}
-          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:opacity-80"
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all hover:opacity-80"
           title={currentUserName}
         >
           <UserAvatar
