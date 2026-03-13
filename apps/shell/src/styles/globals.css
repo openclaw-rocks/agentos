@@ -120,13 +120,32 @@
     color-scheme: dark;
   }
 
-  html, body, #root {
+  html, body {
     height: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
+    /* Prevent iOS Safari bounce scrolling on the page itself */
+    position: fixed;
+    width: 100%;
+    -webkit-overflow-scrolling: auto;
+  }
+
+  #root {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent scroll chaining on all scrollable containers */
+  [class*="overflow-y-auto"],
+  [class*="overflow-auto"] {
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   ::-webkit-scrollbar {
